@@ -1,5 +1,8 @@
 # Postcss Font Grabber
 
+[![Build Status](https://travis-ci.org/AaronJan/postcss-font-grabber.svg?branch=master)](https://travis-ci.org/AaronJan/postcss-font-grabber)
+[![Coverage Status](https://coveralls.io/repos/github/AaronJan/postcss-font-grabber/badge.svg?branch=master)](https://coveralls.io/github/AaronJan/postcss-font-grabber?branch=master)
+
 This is a [PostCSS](https://github.com/postcss/postcss) plugin, only do one thing:
 
 Grab remote font in `@font-face`, download it and update your `CSS`.
