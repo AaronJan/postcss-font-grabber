@@ -1,3 +1,7 @@
+# NYC & Istanbul
+.nyc_output
+coverage
+
 # JetBrain
 .idea
 

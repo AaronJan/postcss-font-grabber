@@ -10,7 +10,8 @@
   },
   "scripts": {
     "test": "ava",
-    "build": "babel src/ --out-dir dist/ --source-maps inline"
+    "build": "babel src/ --out-dir dist/ --source-maps inline",
+    "coverage": "nyc ava"
   },
   "keywords": [
     "postcss-plugin",
@@ -32,7 +33,8 @@
     "presets": [
       "es2015",
       "stage-0"
-    ]
+    ],
+    "sourceMaps": "inline"
   },
   "dependencies": {
     "lodash": "^4.13.0",
