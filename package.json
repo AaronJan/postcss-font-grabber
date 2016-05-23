@@ -5,6 +5,9 @@
   "author": "AaronJan <aaronjan@qq.com>",
   "homepage": "https://github.com/AaronJan/postcss-font-grabber",
   "main": "dist/index.js",
+  "engines" : {
+    "node" : ">=0.12"
+  },
   "scripts": {
     "test": "ava",
     "build": "babel src/ --out-dir dist/ --source-maps inline"
