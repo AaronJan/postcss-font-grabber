@@ -4,6 +4,10 @@
   "description": "Grab remote font in @font-face, download it and update your CSS, end of story.",
   "author": "AaronJan <aaronjan@qq.com>",
   "homepage": "https://github.com/AaronJan/postcss-font-grabber",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AaronJan/postcss-font-grabber.git"
+  },
   "main": "dist/index.js",
   "engines": {
     "node": ">=0.12"
@@ -28,6 +32,7 @@
     "babel-preset-stage-0": "^6.5.0",
     "babel-preset-stage-3": "^6.5.0",
     "babel-register": "^6.9.0",
+    "coveralls": "^2.11.9",
     "nyc": "^6.4.4"
   },
   "babel": {
