@@ -13,7 +13,7 @@ Before using:
 
 ```css
 @font-face {
-    font-family : 'fake font';
+    font-family : 'beautiful-font';
     src         : url('https://font-site.com/beautiful-font.woff');
 }
 ```
@@ -22,7 +22,7 @@ After using:
 
 ```css
 @font-face {
-    font-family : 'fake font';
+    font-family : 'beautiful-font';
     src         : url('local-font/beautiful-font.woff');
 }
 ```
