@@ -30,7 +30,7 @@ After using:
 }
 ```
 
-Of cource, the `beautiful-font.woff` file is in your `local-font/` folder now.
+And of cource, the `beautiful-font.woff` file is in your `local-font/` folder now.
 
 
 ## Usage
