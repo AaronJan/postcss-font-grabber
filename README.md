@@ -64,6 +64,14 @@ module.exports = {
             {
                 test:   /\.css$/,
                 loader: "style-loader!css-loader!postcss-loader"
+            },
+
+            //
+            // Let Webpack support font file
+            //
+            {
+                test: /\.(svg|ttf|eot|woff|woff2)$/,
+                loader: 'file-loader'
             }
         ]
     },
@@ -81,11 +89,11 @@ module.exports = {
 Function `postcssFontGrabber` takes an object of options as parameter:
 
 ```javascript
-postcssFontGrabber({ base: '../css/build/font/' })
+postcssFontGrabber({ dirPath: '../css/build/font/' })
 ```
 
 
-### base
+### dirPath
 
 Type: `String`
 

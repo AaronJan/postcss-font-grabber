@@ -49,7 +49,7 @@ test('process CSS', async t => {
 test('process CSS to sub directory', async t => {
   postcss([
     postcssFontGrabber({
-      base: path.join(__dirname, 'res', 'build'),
+      dirPath: path.join(__dirname, 'res', 'build'),
     }),
   ])
     .process(fs.readFileSync(path.join(__dirname, 'res', 'source.css')), {
@@ -72,7 +72,7 @@ test('process CSS to sub directory', async t => {
 test('process CSS to parent directory', async t => {
   postcss([
     postcssFontGrabber({
-      base: path.join(__dirname),
+      dirPath: path.join(__dirname),
     }),
   ])
     .process(fs.readFileSync(path.join(__dirname, 'res', 'source.css')), {

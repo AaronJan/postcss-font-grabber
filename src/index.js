@@ -30,7 +30,7 @@ class FontGrabber {
     if (! postcssOpts.from) {
       throw new Error('postcss-font-grabber requires postcss "from" option.');
     }
-    if (! postcssOpts.to || postcssOpts.to === postcssOpts.from) {
+    if (! postcssOpts.to) {
       throw new Error('postcss-font-grabber requires postcss "to" option.');
     }
   }
@@ -105,8 +105,8 @@ class FontGrabber {
    * @param postcssOpts
    */
   static reviewOptions (opts, postcssOpts) {
-    if (! opts.base) {
-      opts.base = path.dirname(postcssOpts.to);
+    if (! opts.dirPath) {
+      opts.dirPath = path.dirname(postcssOpts.to);
     }
   }
 
@@ -193,7 +193,11 @@ class FontGrabber {
         jobs.map(job => {
           decl.value = decl.value.replace(
             job.url,
-            path.join(relativePath, job.filename)
+
+            //
+            // Replace `\\` to `/` for Windows compatibility.
+            //
+            path.join(relativePath, job.filename).replace('\\', '/')
           );
         });
       });
@@ -246,7 +250,7 @@ class FontGrabber {
       const declarationProcessor = (decl) => {
         if (FontGrabber.shouldProcessThisFontFaceDeclaration(decl)) {
           processPromises.push(
-            FontGrabber.downloadFontAndUpdateDeclaration(decl, opts.base, postcssOpts.to)
+            FontGrabber.downloadFontAndUpdateDeclaration(decl, opts.dirPath, postcssOpts.to)
           );
         }
       };
