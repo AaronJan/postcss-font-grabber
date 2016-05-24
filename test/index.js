@@ -6,7 +6,8 @@ import fs from 'fs';
 import path from 'path';
 import test from 'ava';
 import postcss from 'postcss';
-import postcssFontGrabber, { FontGrabber } from '../dist/index';
+import FontGrabber from '../dist/lib/font-grabber';
+import postcssFontGrabber from '../dist/index';
 import 'babel-polyfill';
 
 

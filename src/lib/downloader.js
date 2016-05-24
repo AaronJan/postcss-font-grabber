@@ -83,5 +83,7 @@ class Downloader {
   }
 }
 
-
+//
+// Expose default.
+//
 export default Downloader;
