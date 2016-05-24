@@ -28,10 +28,10 @@ class FontGrabber {
    */
   static validatePostcssOptions (postcssOpts) {
     if (! postcssOpts.from) {
-      throw new Error('postcss-copy-assets requires postcss "from" option.');
+      throw new Error('postcss-font-grabber requires postcss "from" option.');
     }
     if (! postcssOpts.to || postcssOpts.to === postcssOpts.from) {
-      throw new Error('postcss-copy-assets requires postcss "to" option.');
+      throw new Error('postcss-font-grabber requires postcss "to" option.');
     }
   }
 
