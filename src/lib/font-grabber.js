@@ -192,7 +192,7 @@ class FontGrabber {
             //
             // Replace `\\` to `/` for Windows compatibility.
             //
-            path.join(relativePath, job.filename).replace('\\', '/')
+            path.join(relativePath, job.filename).replace(/\\/g, '/')
           );
         });
       });
