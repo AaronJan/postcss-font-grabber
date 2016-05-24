@@ -13,9 +13,8 @@
     "node": ">=0.11"
   },
   "scripts": {
-    "test": "ava",
-    "build": "babel src/ --out-dir dist/ --source-maps inline",
-    "coverage": "nyc ava"
+    "test": "nyc ava",
+    "build": "babel src/ --out-dir dist/ --source-maps inline"
   },
   "keywords": [
     "postcss-plugin",
