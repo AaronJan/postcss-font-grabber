@@ -10,6 +10,12 @@ Grab remote font in `@font-face`, download it and update your `CSS`.
 Boom.
 
 
+## Installation
+
+```
+npm install postcss-font-grabber --save-dev
+```
+
 ## Example
 
 Before using:
@@ -98,15 +104,6 @@ postcssFontGrabber({ dirPath: '../css/build/font/' })
 Type: `String`
 
 The folder to save font file to, it's the same folder as the output `CSS` file is in by default.
-
-
-## Roadmap
-
-1. Grab local file.
-
-2. Rename font file name automatically (Configurable).
-
-3. Just replace the rule, do not download the font file.
 
 
 ## License

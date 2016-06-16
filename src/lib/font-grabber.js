@@ -136,6 +136,11 @@ class FontGrabber {
    */
   static downloadFontAndUpdateDeclaration (decl, saveDirPath, cssFilePath) {
     //
+    // This will be used to calculate relative path.
+    //
+    const cssFileDirPath = path.dirname(cssFilePath);
+
+    //
     // One src could have multiple `url()`, they are separated with `,`.
     //
     const srcUrls = decl.value
@@ -174,11 +179,11 @@ class FontGrabber {
       .then(() => {
         //
         // The font file might be saved in a different directory to the CSS
-        // file,  before replace the CSS rule, we have to derive the relative
+        // file, before replace the CSS rule, we have to derive the relative
         // path between them.
         //
         const relativePath = path.relative(
-          path.dirname(cssFilePath),
+          cssFileDirPath,
           saveDirPath
         );
 
