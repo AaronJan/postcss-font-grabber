@@ -67,7 +67,7 @@ class Downloader {
         //
 
         if (res.statusCode !== 200) {
-          reject(`Remote server respond HTTP status: ${res.statusCode} instead of 200.`);
+          reject(new Error(`Remote server respond HTTP status: ${res.statusCode} instead of 200.`));
           return;
         }
 

@@ -8,7 +8,7 @@ import Downloader from '../../dist/lib/downloader';
 /**
  *
  */
-test('download file but get an error', async t => {
+test('download file', async t => {
   t.plan(2);
 
   const downloader = new Downloader();
@@ -22,6 +22,28 @@ test('download file but get an error', async t => {
   downloader.setHttpLib(http);
 
   await downloader.download(remoteUrlObject, filePath);
+
+  t.is(fs.getFilePath(), filePath);
+  t.deepEqual(remoteUrlObject, http.getOptions(), 'url must be received');
+});
+
+/**
+ *
+ */
+test('download file but get an error', async t => {
+  t.plan(3);
+
+  const downloader = new Downloader();
+  const fs         = makeMockFS();
+  const http       = makeMockHttp(404);
+
+  const remoteUrlObject = url.parse('http://dummy.com');
+  const filePath        = '/var/dummy.file';
+
+  downloader.setFsLib(fs);
+  downloader.setHttpLib(http);
+
+  await t.throws(downloader.download(remoteUrlObject, filePath), Error, 'get an Error when HTTP statue code isn\'t 200');
 
   t.is(fs.getFilePath(), filePath);
   t.deepEqual(remoteUrlObject, http.getOptions(), 'url must be received');
@@ -70,9 +92,10 @@ function makeMockFS () {
 
 /**
  *
+ * @param statusCode
  * @returns {Http}
  */
-function makeMockHttp () {
+function makeMockHttp (statusCode = 200) {
   class Http {
     options;
 
@@ -84,7 +107,7 @@ function makeMockHttp () {
       this.options = options;
 
       const mockRes = {
-        statusCode: 200,
+        statusCode: statusCode,
 
         pipe (dest, options) {
 
