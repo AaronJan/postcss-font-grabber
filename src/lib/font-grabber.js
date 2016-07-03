@@ -16,7 +16,7 @@ class FontGrabber {
    *
    */
   static downloader = new Downloader();
-
+  
   /**
    *
    * @param postcssOpts
@@ -29,7 +29,7 @@ class FontGrabber {
       throw new Error('postcss-font-grabber requires postcss "to" option.');
     }
   }
-
+  
   /**
    *
    * @param iterator
@@ -40,7 +40,7 @@ class FontGrabber {
       rule.each(iterator);
     };
   }
-
+  
   /**
    *
    * @param src
@@ -48,14 +48,14 @@ class FontGrabber {
    */
   static generateUrlObjectFromSrc (src) {
     const result = regexes.extractUrlFromFontFaceSrcRegex.exec(src);
-
+    
     return (
       result === null ?
-      null :
-      url.parse(result[2])
+        null :
+        url.parse(result[1])
     );
   }
-
+  
   /**
    *
    * @param kept
@@ -70,10 +70,10 @@ class FontGrabber {
     ) {
       kept.push(value);
     }
-
+    
     return kept;
   }
-
+  
   /**
    *
    * @param downloadDir
@@ -82,7 +82,7 @@ class FontGrabber {
   static makeFontDownloadJobDispatcher (downloadDir) {
     return (fontUrlObj) => {
       const filename = fontUrlObj.pathname.split('/').pop();
-
+      
       return {
         url     : fontUrlObj.href,
         filename: filename,
@@ -93,7 +93,7 @@ class FontGrabber {
       };
     };
   }
-
+  
   /**
    *
    * @param opts
@@ -104,7 +104,7 @@ class FontGrabber {
       opts.dirPath = path.dirname(postcssOpts.to);
     }
   }
-
+  
   /**
    * Skip Font-Face Postcss object that is:
    *   not a Declaration
@@ -119,13 +119,25 @@ class FontGrabber {
       return false;
     } else if (decl.prop !== 'src') {
       return false;
-    } else if (regexes.isFontFaceSrcContainsRemoteUrlRegex.test(decl.value) === false) {
+    } else if (regexes.isFontFaceSrcContainsRemoteFontUrlRegex.test(decl.value) === false) {
       return false;
     }
-
+    
     return true;
   }
-
+  
+  /**
+   *
+   * @param urlSrcSources
+   * @param srcSource
+   * @returns {Array}
+   */
+  static keepUrlSrcSourceOnly (urlSrcSources, srcSource) {
+    return regexes.isRemoteFontUrlRegex.test(srcSource) ?
+      [...urlSrcSources, srcSource] :
+      urlSrcSources;
+  }
+  
   /**
    * Download font file and update output CSS rule correspondingly.
    *
@@ -141,20 +153,24 @@ class FontGrabber {
     const cssFileDirPath = path.dirname(cssFilePath);
 
     //
-    // One src could have multiple `url()`, they are separated with `,`.
+    // One src could have multiple `source`, they are separated with `,`,
+    // so break it down and filter out those which isn't an `url` source.
     //
-    const srcUrls = decl.value
+    const urlSrcSources = decl.value
       .split(',')
-      .map(value => value.replace(regexes.trimRegex, ''));
+      .map(function trim (srcSources) {
+        return srcSources.replace(regexes.trimRegex, '');
+      })
+      .reduce(FontGrabber.keepUrlSrcSourceOnly, []);
 
     //
-    // Use `srcUrls` to generate Url objects for download.
+    // Use `urlSrcSources` to generate Url objects for download.
     // This will check the validation of font url, and only keep which is
     // unique.
-    const fontFileUrlObjects = srcUrls
+    const fontFileUrlObjects = urlSrcSources
       .map(FontGrabber.generateUrlObjectFromSrc)
       .reduce(FontGrabber.keepUniqueAndValidFontFileUrlObject, []);
-
+    
     //
     // If there is no font file needs to be download, end this function
     // Must return a promise.
@@ -162,7 +178,7 @@ class FontGrabber {
     if (fontFileUrlObjects.length === 0) {
       return Promise.resolve();
     }
-
+    
     //
     // Download font to `saveDirPath` using Url objects **concurrently**
     // and return `job` objects that contain:
@@ -174,7 +190,7 @@ class FontGrabber {
     const jobs = fontFileUrlObjects.map(
       FontGrabber.makeFontDownloadJobDispatcher(saveDirPath)
     );
-
+    
     return Promise.all(jobs.map(job => job.promise))
       .then(() => {
         //
@@ -186,14 +202,14 @@ class FontGrabber {
           cssFileDirPath,
           saveDirPath
         );
-
+        
         //
         // Replace CSS rule with every font that downloaded.
         //
         jobs.map(job => {
           decl.value = decl.value.replace(
             job.url,
-
+            
             //
             // Replace `\\` to `/` for Windows compatibility.
             //
@@ -202,7 +218,7 @@ class FontGrabber {
         });
       });
   }
-
+  
   /**
    *
    * @param downloader
@@ -210,7 +226,7 @@ class FontGrabber {
   static setDownloader (downloader) {
     FontGrabber.downloader = downloader;
   }
-
+  
   /**
    *
    * @returns {Downloader}
@@ -218,7 +234,7 @@ class FontGrabber {
   static getDownloader () {
     return FontGrabber.downloader;
   }
-
+  
   /**
    * Make handle function for plugin to call with.
    *
@@ -231,22 +247,22 @@ class FontGrabber {
       // Get the options from Postcss for later use.
       //
       let postcssOpts = result.opts;
-
+      
       //
       // If something is missing in the Postcss options, throw an Error.
       //
       FontGrabber.validatePostcssOptions(postcssOpts);
-
+      
       //
       // Review options for Font Grabber (This may modify them).
       //
       FontGrabber.reviewOptions(opts, postcssOpts);
-
+      
       //
       // Process every Declaration that matchs rule `font-face` concurrently.
       //
       let processPromises = [];
-
+      
       const declarationProcessor = (decl) => {
         if (FontGrabber.shouldProcessThisFontFaceDeclaration(decl)) {
           processPromises.push(
@@ -254,13 +270,13 @@ class FontGrabber {
           );
         }
       };
-
+      
       css.walkAtRules(/font-face/, FontGrabber.iterateCSSRuleWith(declarationProcessor));
-
+      
       return (
         processPromises.length === 0 ?
-        Promise.resolve() :
-        Promise.all(processPromises)
+          Promise.resolve() :
+          Promise.all(processPromises)
       );
     };
   }

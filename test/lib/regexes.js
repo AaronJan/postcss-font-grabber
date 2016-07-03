@@ -7,36 +7,40 @@ import * as regexes from '../../src/lib/regexes';
 test('extractUrlFromFontFaceSrcRegex', t => {
   t.is(
     'http://dummy.com',
-    execRegex(regexes.extractUrlFromFontFaceSrcRegex, 2, "url('http://dummy.com')")
+    execRegex(regexes.extractUrlFromFontFaceSrcRegex, 1, "url('http://dummy.com')")
   );
   t.is(
     'http://dummy.com',
-    execRegex(regexes.extractUrlFromFontFaceSrcRegex, 2, "url ('http://dummy.com')")
+    execRegex(regexes.extractUrlFromFontFaceSrcRegex, 1, "url ('http://dummy.com')")
   );
   t.is(
     'http://dummy.com',
-    execRegex(regexes.extractUrlFromFontFaceSrcRegex, 2, "url (\"http://dummy.com\")")
+    execRegex(regexes.extractUrlFromFontFaceSrcRegex, 1, "url (\"http://dummy.com\")")
   );
   t.is(
     'https://dummy.com',
-    execRegex(regexes.extractUrlFromFontFaceSrcRegex, 2, "url ('https://dummy.com')")
+    execRegex(regexes.extractUrlFromFontFaceSrcRegex, 1, "url ('https://dummy.com')")
   );
 
   t.is(
     'http://dummy.com/dummy.html',
-    execRegex(regexes.extractUrlFromFontFaceSrcRegex, 2, "url('http://dummy.com/dummy.html')")
+    execRegex(regexes.extractUrlFromFontFaceSrcRegex, 1, "url('http://dummy.com/dummy.html')")
   );
   t.is(
     'http://dummy.com/dummy.html',
-    execRegex(regexes.extractUrlFromFontFaceSrcRegex, 2, "url ('http://dummy.com/dummy.html')")
+    execRegex(regexes.extractUrlFromFontFaceSrcRegex, 1, "url ('http://dummy.com/dummy.html')")
   );
   t.is(
     'http://dummy.com/dummy.html',
-    execRegex(regexes.extractUrlFromFontFaceSrcRegex, 2, "url (\"http://dummy.com/dummy.html\")")
+    execRegex(regexes.extractUrlFromFontFaceSrcRegex, 1, "url (\"http://dummy.com/dummy.html\")")
   );
   t.is(
     'https://dummy.com/dummy.html',
-    execRegex(regexes.extractUrlFromFontFaceSrcRegex, 2, "url ('https://dummy.com/dummy.html')")
+    execRegex(regexes.extractUrlFromFontFaceSrcRegex, 1, "url ('https://dummy.com/dummy.html')")
+  );
+  t.is(
+    'https://fonts.gstatic.com/s/sourcesanspro/v9/toadOcfmlt9b38dHJxOBGLsbIrGiHa6JIepkyt5c0A0.ttf',
+    execRegex(regexes.extractUrlFromFontFaceSrcRegex, 1, 'url(https://fonts.gstatic.com/s/sourcesanspro/v9/toadOcfmlt9b38dHJxOBGLsbIrGiHa6JIepkyt5c0A0.ttf) format(\'truetype\')')
   );
 });
 
@@ -56,12 +60,13 @@ test('trimRegex', t => {
   t.is('string', '  string     '.replace(regexes.trimRegex, ''));
 });
 
-test('isFontFaceSrcContainsRemoteUrlRegex', t => {
-  t.true(regexes.isFontFaceSrcContainsRemoteUrlRegex.test("url('http://dummy.com')"));
-  t.true(regexes.isFontFaceSrcContainsRemoteUrlRegex.test("url('https://dummy.com')"));
-  t.true(regexes.isFontFaceSrcContainsRemoteUrlRegex.test('url("https://dummy.com")'));
-  t.true(regexes.isFontFaceSrcContainsRemoteUrlRegex.test('  url ("https://dummy.com")'));
-  t.true(regexes.isFontFaceSrcContainsRemoteUrlRegex.test('  url ( "https://dummy.com" )'));
+test('isFontFaceSrcContainsRemoteFontUrlRegex', t => {
+  t.true(regexes.isFontFaceSrcContainsRemoteFontUrlRegex.test("url('http://dummy.com')"));
+  t.true(regexes.isFontFaceSrcContainsRemoteFontUrlRegex.test("url('https://dummy.com')"));
+  t.true(regexes.isFontFaceSrcContainsRemoteFontUrlRegex.test('url("https://dummy.com")'));
+  t.true(regexes.isFontFaceSrcContainsRemoteFontUrlRegex.test('  url ("https://dummy.com")'));
+  t.true(regexes.isFontFaceSrcContainsRemoteFontUrlRegex.test('  url ( "https://dummy.com" )'));
+  t.true(regexes.isFontFaceSrcContainsRemoteFontUrlRegex.test('local(\'Source Sans Pro Bold\'), local(\'SourceSansPro-Bold\'), url(https://fonts.gstatic.com/s/sourcesanspro/v9/toadOcfmlt9b38dHJxOBGLsbIrGiHa6JIepkyt5c0A0.ttf) format(\'truetype\')'));
 });
 
 function execRegex (regex, pluckIndex, str) {
