@@ -48,6 +48,7 @@ test('validFontExtensionRegex', t => {
   t.true(regexes.validFontExtensionRegex.test('file.ttf'));
   t.true(regexes.validFontExtensionRegex.test('file.otf'));
   t.true(regexes.validFontExtensionRegex.test('file.woff'));
+  t.true(regexes.validFontExtensionRegex.test('file.woff2'));
   t.true(regexes.validFontExtensionRegex.test('file.eot'));
   t.true(regexes.validFontExtensionRegex.test('file.svg'));
 

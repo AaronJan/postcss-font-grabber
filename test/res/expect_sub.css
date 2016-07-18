@@ -1,7 +1,7 @@
 @font-face {
     font-family : 'fake font';
     src         : url('build/fake_otf_font.eot');
-    src         : url('build/fake_eot_font.eot') format('embedded-opentype'), url('build/fake_woff_font.woff') format('woff'), url('build/fake_ttf_font.ttf') format('truetype'), url('build/fake_svg_font.svg') format('svg');
+    src         : url('build/fake_eot_font.eot') format('embedded-opentype'), url('build/fake_woff_font.woff') format('woff'), url('build/fake_woff2_font.woff2') format('woff2'), url('build/fake_ttf_font.ttf') format('truetype'), url('build/fake_svg_font.svg') format('svg');
 }
 
 .by-class {

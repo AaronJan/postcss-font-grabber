@@ -3,7 +3,7 @@
  */
 
 const extractUrlFromFontFaceSrcRegex          = /^url\s*\(\s*[\'\"]?(https?:[^\)]*?)[\'\"]?\s*\)/;
-const validFontExtensionRegex                 = /\.(ttf|otf|woff|eot|svg)$/;
+const validFontExtensionRegex                 = /\.(ttf|otf|woff|woff2|eot|svg)$/;
 const trimRegex                               = /(^\s+|\s+$)/g;
 const isFontFaceSrcContainsRemoteFontUrlRegex = /(\s*|,|^)url\s*\(\s*[\'\"]?https?:/;
 const isRemoteFontUrlRegex                    = /^\s*url\s*\(\s*[\'\"]?https?:/;
