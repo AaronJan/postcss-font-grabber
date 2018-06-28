@@ -1,7 +1,14 @@
 # PostCSS Font Grabber
 
-[![Build Status](https://travis-ci.org/AaronJan/postcss-font-grabber.svg?branch=master)](https://travis-ci.org/AaronJan/postcss-font-grabber)
-[![Coverage Status](https://coveralls.io/repos/github/AaronJan/postcss-font-grabber/badge.svg?branch=master)](https://coveralls.io/github/AaronJan/postcss-font-grabber?branch=master)
+<p align="center">
+  <a href="https://www.npmjs.com/package/postcss-font-grabber"><img src="https://img.shields.io/npm/v/postcss-font-grabber.svg?style=flat-square" alt="Build Status"></a>
+  <a href="https://www.npmjs.com/package/postcss-font-grabber"><img src="https://img.shields.io/npm/dt/postcss-font-grabber.svg?style=flat-square" alt="Downloads"></a>
+  <a href="https://travis-ci.org/AaronJan/postcss-font-grabber"><img src="https://img.shields.io/travis/AaronJan/postcss-font-grabber.svg?style=flat-square" alt="Build Status"></a>
+  <a href="https://coveralls.io/github/AaronJan/postcss-font-grabber?branch=master"><img src="https://img.shields.io/coveralls/AaronJan/postcss-font-grabber.svg?style=flat-square" alt="Coverage Status"></a>
+  <a href="https://www.npmjs.com/package/postcss-font-grabber"><img src="https://img.shields.io/npm/l/postcss-font-grabber.svg?style=flat-square" alt="License"></a>
+</p>
+
+> `2.0` is coming!
 
 This is a [PostCSS](https://github.com/postcss/postcss) plugin, only do one thing:
 

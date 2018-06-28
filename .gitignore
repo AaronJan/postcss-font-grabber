@@ -86,3 +86,12 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
+# NPM
+/package-lock.json
+
+# Project
+/dist/
+
+# Development
+/dev/
+/coverage/

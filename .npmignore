@@ -1,0 +1,6 @@
+/src/**/*.ts
+/dev/
+/tests/
+/jest.config.js
+/.travis.yml
+/tsconfig.json

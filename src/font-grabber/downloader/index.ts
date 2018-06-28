@@ -1,0 +1,61 @@
+import fs from 'fs';
+import http from 'http';
+import https from 'https';
+import url from 'url';
+import path from 'path';
+
+import { FileSystem, HttpGet, FileInfo, Downloader as DownloaderContract } from './contract';
+import { pick, makeDirectoryRecursively } from '../../helpers';
+
+export class Downloader implements DownloaderContract {
+    constructor(
+        protected fsLibrary: FileSystem = fs,
+        protected httpGet: HttpGet = http.get,
+        protected httpsGet: HttpGet = https.get
+    ) {
+        //
+    }
+
+    /**
+     * 
+     * @param urlObject 
+     * @param filePath 
+     * @param autoCreateDirectory 
+     */
+    async download(
+        urlObject: url.UrlWithStringQuery,
+        filePath: string,
+        autoCreateDirectory: boolean = true
+    ): Promise<FileInfo> {
+        if (autoCreateDirectory === true) {
+            await makeDirectoryRecursively(path.dirname(filePath));
+        }
+
+        const downloadedFile = this.fsLibrary.createWriteStream(filePath);
+        const get = urlObject.protocol === 'http:' ? this.httpGet : this.httpsGet;
+        const requestOptions = Object.assign(
+            pick(urlObject, [
+                'protocol',
+                'host',
+                'port',
+                'path',
+            ]),
+            {
+                timeout: 10000,
+            }
+        );
+
+        return new Promise<FileInfo>((resolve, reject) => {
+            get(requestOptions, response => {
+                if (response.statusCode !== 200) {
+                    return reject(new Error(`Remote server respond HTTP status: ${response.statusCode} instead of 200.`));
+                }
+
+                response.pipe(downloadedFile, { end: true });
+                response.on('end', () => resolve({
+                    size: response.readableLength,
+                }));
+            });
+        });
+    }
+}
