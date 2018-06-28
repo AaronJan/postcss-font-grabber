@@ -168,16 +168,15 @@ export function processDeclaration(
 /**
  * 
  * @param job 
+ * @param downloader 
  */
 export function downloadFont(
     job: Job,
-    autoCreateDirectory: boolean = true,
     downloader: DownloaderContract = new Downloader()
 ): Promise<JobResult> {
     return downloader.download(
         job.remoteFont.urlObject,
-        job.font.path,
-        autoCreateDirectory
+        job.font.path
     )
         .then(fileInfo => {
             return {

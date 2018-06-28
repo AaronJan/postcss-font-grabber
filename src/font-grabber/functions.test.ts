@@ -344,7 +344,7 @@ describe('downloadFont', () => {
             download: sinon.fake.returns(Promise.resolve(stubFileInfo)),
         };
 
-        const result = functions.downloadFont(job, true, <any>downloader);
+        const result = functions.downloadFont(job, <any>downloader);
 
         expect(result).resolves.toMatchObject({
             job,

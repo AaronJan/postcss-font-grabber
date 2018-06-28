@@ -15,7 +15,6 @@ export interface FileInfo {
 export interface Downloader {
     download(
         urlObject: url.UrlWithStringQuery,
-        filePath: string,
-        autoCreateDirectory: boolean
+        filePath: string
     ): Promise<FileInfo>;
 }

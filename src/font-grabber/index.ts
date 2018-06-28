@@ -18,9 +18,9 @@ import {
     isRemoteFontFaceDeclaration,
     downloadFont,
 } from './functions';
-import { unique, md5 } from '../helpers';
+import { unique, md5, makeDirectoryRecursively, defaultValue } from '../helpers';
 
-const debug = debuglog('FontGrabber');
+const debug = debuglog('PostcssFontGrabber - FontGrabber');
 
 /**
  * 
@@ -51,6 +51,9 @@ export class FontGrabber {
         this.doneEmitter.emit('done', meta);
     }
 
+    /**
+     * 
+     */
     makeTransformer(): PostcssTransformer {
         return (root, result) => {
             debug(`CSS file: [${root.source.input.file}]`);
@@ -62,32 +65,47 @@ export class FontGrabber {
                 throw new Error(`PostCSS-Font-Grabber requires PostCSS's \`to\` option.`);
             }
             const cssOutputTo = this.settings.cssDestinationDirectoryPath;
-            const fontOutputTo = this.settings.directoryPath !== undefined ?
-                this.settings.directoryPath :
-                path.dirname(result.opts.to);
+            const fontOutputTo = defaultValue(this.settings.directoryPath, path.dirname(result.opts.to));
 
             debug(`output : [${root.source.input.file}]`);
 
             const jobs: Job[] = [];
             const declarationProcessor: PostcssChildNodeProcessor = node => {
                 if (isRemoteFontFaceDeclaration(node)) {
-                    jobs.push(...processDeclaration(<PostcssDeclaration>node, root.source.input.file, cssOutputTo, fontOutputTo));
+                    jobs.push(...processDeclaration(
+                        <PostcssDeclaration>node,
+                        root.source.input.file,
+                        cssOutputTo,
+                        fontOutputTo
+                    ));
                 }
             };
             root.walkAtRules(/font-face/, rule => rule.each(declarationProcessor));
 
             const uniqueJobs = unique(jobs, job => md5(url.format(job.remoteFont.urlObject) + job.css.sourcePath));
-            const downloadPromises = uniqueJobs.map(job => downloadFont(job, this.settings.autoCreateDirectory));
 
-            return Promise.all(downloadPromises)
-                .then(jobResults => {
-                    this.done(jobResults);
-                });
+            return this.createDirectoryIfWantTo(fontOutputTo)
+                .then(() => Promise.all(uniqueJobs.map(job => downloadFont(job))))
+                .then(jobResults => this.done(jobResults));
         };
     }
 
+    /**
+     * 
+     * @param callback 
+     */
     onDone(callback: DoneCallback) {
         this.doneEmitter.on('done', callback);
+    }
+
+    /**
+     * 
+     * @param directoryPath 
+     */
+    protected createDirectoryIfWantTo(directoryPath: string): Promise<void> {
+        return this.settings.autoCreateDirectory === true ?
+            makeDirectoryRecursively(directoryPath) :
+            Promise.resolve();
     }
 
 }

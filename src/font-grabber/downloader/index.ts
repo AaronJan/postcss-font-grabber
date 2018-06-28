@@ -2,10 +2,9 @@ import fs from 'fs';
 import http from 'http';
 import https from 'https';
 import url from 'url';
-import path from 'path';
 
 import { FileSystem, HttpGet, FileInfo, Downloader as DownloaderContract } from './contract';
-import { pick, makeDirectoryRecursively } from '../../helpers';
+import { pick } from '../../helpers';
 
 export class Downloader implements DownloaderContract {
     constructor(
@@ -20,17 +19,11 @@ export class Downloader implements DownloaderContract {
      * 
      * @param urlObject 
      * @param filePath 
-     * @param autoCreateDirectory 
      */
     async download(
         urlObject: url.UrlWithStringQuery,
-        filePath: string,
-        autoCreateDirectory: boolean = true
+        filePath: string
     ): Promise<FileInfo> {
-        if (autoCreateDirectory === true) {
-            await makeDirectoryRecursively(path.dirname(filePath));
-        }
-
         const downloadedFile = this.fsLibrary.createWriteStream(filePath);
         const get = urlObject.protocol === 'http:' ? this.httpGet : this.httpsGet;
         const requestOptions = Object.assign(
