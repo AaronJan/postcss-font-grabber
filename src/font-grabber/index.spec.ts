@@ -26,7 +26,7 @@ describe('makeTransformer', () => {
             },
             css: {
                 sourcePath: values.cssSourceFilePath,
-                targetPath: values.cssTargetFilePath,
+                targetDirectoryPath: values.cssTargetFilePath,
             },
             font: {
                 path: values.localFontPath,

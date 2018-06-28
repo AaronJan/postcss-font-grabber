@@ -5,4 +5,4 @@ node_js:
   - "8"
 script: npm run test:cov
 after_success:
-  - './node_modules/.bin/coveralls'
+  - 'npx jest --coverage --coverageReporters=text-lcov | ./node_modules/.bin/coveralls'
