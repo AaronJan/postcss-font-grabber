@@ -3,6 +3,6 @@ node_js:
   - "10"
   - "9"
   - "8"
-script: npm test:cov
+script: npm run test:cov
 after_success:
   - './node_modules/.bin/coveralls'
