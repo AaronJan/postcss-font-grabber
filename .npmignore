@@ -4,3 +4,9 @@
 /jest.config.js
 /.travis.yml
 /tsconfig.json
+!/dist/
+
+/coverage/
+/.vscode/
+
+/*.tgz
