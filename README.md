@@ -21,8 +21,10 @@ Boom.
 
 ## Installation
 
+> Requires: `Node >= 8.0`
+
 ```
-npm install postcss-font-grabber --save-dev
+npm install postcss-font-grabber@2.0.0-alpha.1 --save-dev
 ```
 
 ## Example
