@@ -7,13 +7,15 @@ import * as functions from './functions';
 
 describe('parseOptions', () => {
 
-    test('empty options', () => {
+    test('minimal options', () => {
         const options: PluginOptions = {
             cssDestinationDirectoryPath: '/var/project/public/dist/',
         };
         const settings = functions.parseOptions(options);
 
         expect(settings).toEqual({
+            cssDestinationDirectoryPath: '/var/project/public/dist',
+            directoryPath: undefined,
             autoCreateDirectory: true,
         });
     });
@@ -26,6 +28,8 @@ describe('parseOptions', () => {
         const settings = functions.parseOptions(options);
 
         expect(settings).toEqual({
+            cssDestinationDirectoryPath: '/var/project/public/dist',
+            directoryPath: undefined,
             autoCreateDirectory: false,
         });
     });
@@ -271,14 +275,13 @@ describe('processDeclaration', () => {
             value: ' url(https://example.com/folder/font1.woff2) format(woff2), url(https://example.com/folder/font2.woff)',
         };
         const cssSourceFilePath = '/var/project/public/style.css';
-        const cssTargetFilePath = '/var/project/public/dist/style.css';
+        const cssTargetDirectoryPath = '/var/project/public/dist';
         const downloadDirectoryPath = '/var/project/public/fonts/';
-
 
         const jobs = functions.processDeclaration(
             declaration,
             cssSourceFilePath,
-            cssTargetFilePath,
+            cssTargetDirectoryPath,
             downloadDirectoryPath
         );
         const expected = [
@@ -289,7 +292,7 @@ describe('processDeclaration', () => {
                 },
                 css: {
                     sourcePath: cssSourceFilePath,
-                    targetPath: cssTargetFilePath,
+                    targetDirectoryPath: cssTargetDirectoryPath,
                 },
                 font: {
                     path: `${downloadDirectoryPath}font1.woff2`,
@@ -303,7 +306,7 @@ describe('processDeclaration', () => {
                 },
                 css: {
                     sourcePath: cssSourceFilePath,
-                    targetPath: cssTargetFilePath,
+                    targetDirectoryPath: cssTargetDirectoryPath,
                 },
                 font: {
                     path: `${downloadDirectoryPath}font2.woff`,
