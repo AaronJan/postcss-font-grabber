@@ -21,9 +21,10 @@ const fontExtensionToFormatMap: Dictionary<string> = {
  */
 export function parseOptions(options: PluginOptions): PluginSettings {
     return <PluginSettings>{
-        cssDestinationDirectoryPath: path.resolve(options.cssDestinationDirectoryPath),
-        directoryPath: options.directoryPath !== undefined ? path.resolve(options.directoryPath) : undefined,
-        autoCreateDirectory: defaultValue(options.autoCreateDirectory, true),
+        cssSourceDirectoryPath: options.cssSrc !== undefined ? path.resolve(options.cssSrc) : undefined,
+        cssDestinationDirectoryPath: options.cssDest !== undefined ? path.resolve(options.cssDest) : undefined,
+        fontDirectoryPath: options.fontDir !== undefined ? path.resolve(options.fontDir) : undefined,
+        autoCreateDirectory: defaultValue(options.mkdir, true),
     };
 }
 
@@ -186,4 +187,38 @@ export function downloadFont(
                 },
             };
         });
+}
+
+/**
+ * 
+ * @param cssSourceFilePath 
+ * @param cssSourceDirectoryPathFromSetting 
+ * @param cssDestinationDirectoryPathFromSetting 
+ * @param postcssOptionsTo 
+ */
+export function calculateCssOutputDirectoryPath(
+    cssSourceFilePath: string,
+    cssSourceDirectoryPathFromSetting: string | undefined,
+    cssDestinationDirectoryPathFromSetting: string | undefined,
+    postcssOptionsTo: string | undefined
+): string | undefined {
+    const cssDirectoryPath = path.dirname(cssSourceFilePath);
+    const finalPostcssOptionsTo = defaultValue(postcssOptionsTo, undefined);
+    // 首先得到源css的目录差异
+    const cssSourceDirectoryPath = defaultValue(
+        cssSourceDirectoryPathFromSetting,
+        cssDirectoryPath
+    );
+    const cssDestinationDirectoryPath = defaultValue(
+        cssDestinationDirectoryPathFromSetting,
+        (finalPostcssOptionsTo !== undefined ? path.dirname(finalPostcssOptionsTo) : undefined)
+    );
+
+    if (cssDestinationDirectoryPath === undefined) {
+        return undefined;
+    }
+
+    const cssToSourceDirectoryRelation = path.relative(cssSourceDirectoryPath, cssDirectoryPath);
+
+    return path.join(cssDestinationDirectoryPath, cssToSourceDirectoryRelation);
 }

@@ -29,7 +29,7 @@ npm install postcss-font-grabber@2.0.0-alpha.1 --save-dev
 
 ## Example
 
-Before using:
+Before:
 
 ```css
 @font-face {
@@ -38,7 +38,7 @@ Before using:
 }
 ```
 
-After using:
+After:
 
 ```css
 @font-face {
@@ -47,7 +47,7 @@ After using:
 }
 ```
 
-And of cource, the `beautiful-font.woff` file is in your `local-font/` folder now.
+Of cource, the `beautiful-font.woff` file is in your `local-font/` folder now.
 
 
 ## Usage
@@ -56,15 +56,16 @@ And of cource, the `beautiful-font.woff` file is in your `local-font/` folder no
 
 ```javascript
 gulp.task('css', () => {
-    const postcss            = require('gulp-postcss');
+    const postcss = require('gulp-postcss');
     const { postcssFontGrabber } = require('postcss-font-grabber');
 
-    return gulp.src('src/**/*.css')
+    return gulp.src('src/css/**/*.css')
         .pipe(postcss([
             postcssFontGrabber({
-                cssDestinationDirectoryPath: 'dist/',
-                directoryPath: 'dist/fonts/',
-                autoCreateDirectory: true,
+                cssSrc: 'src/css/',
+                cssDest: 'dist/',
+                fontDir: 'dist/fonts/',
+                mkdir: true,
             }),
         ]))
         .pipe(gulp.dest('dist/'));
@@ -98,11 +99,7 @@ module.exports = {
     },
     postcss: () => {
         return [
-            postcssFontGrabber({
-                cssDestinationDirectoryPath: 'dist/',
-                directoryPath: 'dist/fonts/',
-                autoCreateDirectory: true,
-            }),
+            postcssFontGrabber(),
         ];
     }
 }
@@ -115,25 +112,30 @@ Function `postcssFontGrabber` takes an object of options as parameter:
 
 ```javascript
 postcssFontGrabber({
-    cssDestinationDirectoryPath: 'dist/',
-    directoryPath: 'dist/fonts/',
-    autoCreateDirectory: true,
+    cssSrc: 'src/css/',
+    cssDest: 'dist/',
+    fontDir: 'dist/fonts/',
+    mkdir: true,
 })
 ```
 
-### cssDestinationDirectoryPath
+### cssSrc
 
 Type: `string`
 
 TODO
 
-### cssDestinationDirectoryPath
+### cssDest
 
 Type: `string`
 
 The folder to save font file to, it's the same folder as the output `CSS` file is in by default.
 
-### autoCreateDirectory
+### fontDir
+
+Type: `string`
+
+### mkdir
 
 Type: `boolean`
 
@@ -152,16 +154,17 @@ import { makeInstance } from 'postcss-font-grabber';
 
 gulp.task('default', () => {
     const fontGrabber = makeInstance({
-        cssDestinationDirectoryPath: 'dist/',
-        directoryPath: 'dist/fonts/',
-        autoCreateDirectory: true,
+        cssSrc: 'src/css/',
+        cssDest: 'dist/',
+        fontDir: 'dist/fonts/',
+        mkdir: true,
     });
 
     fontGrabber.onDone(meta => {
         console.log('meta', JSON.stringify(meta, null, '    '));
     });
 
-    return gulp.src('src/**/*.css')
+    return gulp.src('src/css/**/*.css')
         .pipe(postcss([
             fontGrabber.makeTransformer(),
         ]))
@@ -208,7 +211,7 @@ import url from 'url';
 
 - [ ] Docs
 - [ ] Fix download size
-- [ ] Support calculating relative path when CSS file has it's own sub-folder
+- [x] Support calculating relative path when CSS file has it's own sub-folder
 
 
 ## License

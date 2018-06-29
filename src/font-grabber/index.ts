@@ -2,7 +2,7 @@ import EventEmitter from 'events';
 import { Transformer as PostcssTransformer, Declaration as PostcssDeclaration } from 'postcss';
 import { debuglog } from 'util';
 import url from 'url';
-import path from 'path';
+import postcss from 'postcss';
 
 import {
     PluginSettings,
@@ -13,12 +13,12 @@ import {
     PostcssChildNodeProcessor,
 } from '../contracts';
 import {
-    parseOptions,
     processDeclaration,
     isRemoteFontFaceDeclaration,
     downloadFont,
+    calculateCssOutputDirectoryPath,
 } from './functions';
-import { unique, md5, makeDirectoryRecursively, defaultValue } from '../helpers';
+import { unique, md5, makeDirectoryRecursively, defaultValue, getOrDefault } from '../helpers';
 
 const debug = debuglog('PostcssFontGrabber - FontGrabber');
 
@@ -36,7 +36,7 @@ export class FontGrabber {
      */
     constructor(settings: PluginSettings) {
         this.doneEmitter = new EventEmitter();
-        this.settings = parseOptions(settings);
+        this.settings = settings;
         this.downloadJobs = [];
     }
 
@@ -53,21 +53,47 @@ export class FontGrabber {
 
     /**
      * 
+     * @param result 
+     * @param key 
+     */
+    protected getOptionFromPostcssResult(result: postcss.Result | undefined, key: string): string | undefined {
+        if (result === undefined) {
+            return undefined;
+        }
+
+        if (result.opts === undefined) {
+            return undefined;
+        }
+
+        return getOrDefault<string | undefined>(<any>result.opts, key, undefined);
+    }
+
+    /**
+     * 
      */
     makeTransformer(): PostcssTransformer {
         return (root, result) => {
             debug(`CSS file: [${root.source.input.file}]`);
 
-            /**
-             * Validate PostCSS options.
-             */
-            if (result === undefined || result.opts === undefined || result.opts.to === undefined) {
-                throw new Error(`PostCSS-Font-Grabber requires PostCSS's \`to\` option.`);
-            }
-            const cssOutputTo = this.settings.cssDestinationDirectoryPath;
-            const fontOutputTo = defaultValue(this.settings.directoryPath, path.dirname(result.opts.to));
+            const postcssOptionsTo = this.getOptionFromPostcssResult(result, 'to');
 
-            debug(`output : [${root.source.input.file}]`);
+            const cssOutputToDirectory = calculateCssOutputDirectoryPath(
+                root.source.input.file,
+                this.settings.cssSourceDirectoryPath,
+                this.settings.cssDestinationDirectoryPath,
+                postcssOptionsTo
+            );
+            const fontOutputToDirectory = defaultValue(
+                this.settings.fontDirectoryPath,
+                cssOutputToDirectory
+            );
+
+            if (cssOutputToDirectory === undefined || fontOutputToDirectory === undefined) {
+                throw new Error(`Can not determine output file path`);
+            }
+
+            debug(`css output to: [${cssOutputToDirectory}]`);
+            debug(`font output to: [${fontOutputToDirectory}]`);
 
             const jobs: Job[] = [];
             const declarationProcessor: PostcssChildNodeProcessor = node => {
@@ -75,8 +101,8 @@ export class FontGrabber {
                     jobs.push(...processDeclaration(
                         <PostcssDeclaration>node,
                         root.source.input.file,
-                        cssOutputTo,
-                        fontOutputTo
+                        cssOutputToDirectory,
+                        fontOutputToDirectory
                     ));
                 }
             };
@@ -84,7 +110,7 @@ export class FontGrabber {
 
             const uniqueJobs = unique(jobs, job => md5(url.format(job.remoteFont.urlObject) + job.css.sourcePath));
 
-            return this.createDirectoryIfWantTo(fontOutputTo)
+            return this.createDirectoryIfWantTo(fontOutputToDirectory)
                 .then(() => Promise.all(uniqueJobs.map(job => downloadFont(job))))
                 .then(jobResults => this.done(jobResults));
         };

@@ -2,14 +2,16 @@ import postcss from 'postcss';
 import * as url from 'url';
 
 export interface PluginOptions {
-    cssDestinationDirectoryPath: string,
-    directoryPath?: string,
-    autoCreateDirectory?: boolean,
+    cssSrc?: string,
+    cssDest?: string,
+    fontDir?: string,
+    mkdir?: boolean,
 };
 
 export interface PluginSettings {
-    cssDestinationDirectoryPath: string,
-    directoryPath: string,
+    cssSourceDirectoryPath: string | undefined,
+    cssDestinationDirectoryPath: string | undefined,
+    fontDirectoryPath: string | undefined,
     autoCreateDirectory: boolean,
 };
 

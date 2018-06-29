@@ -13,10 +13,13 @@ describe('makeTransformer', () => {
             remoteFontHost: 'https://example.com/',
             remoteFontUrl: 'https://example.com/folder/font1.woff2',
             fontFormat: 'woff2',
-            cssSourceFilePath: '/var/project/public/dist/style.css',
-            cssTargetFilePath: '/var/project/public/dist/style.css',
+            cssSourceFilePath: '/var/project/public/style.css',
+            cssSourceDirectoryPath: '/var/project/public/dist',
+            cssDestinationFilePath: '/var/project/public/dist/style.css',
+            cssDestinationDirectoryPath: '/var/project/public/dist',
             localFontPath: '/var/project/public/dist/font1.woff2',
             fontFilename: 'font1.woff2',
+            postcssOptsTo: '/var/project/public/dist/style.css',
         };
 
         const job: Job = {
@@ -26,7 +29,7 @@ describe('makeTransformer', () => {
             },
             css: {
                 sourcePath: values.cssSourceFilePath,
-                targetDirectoryPath: values.cssTargetFilePath,
+                targetDirectoryPath: values.cssDestinationDirectoryPath,
             },
             font: {
                 path: values.localFontPath,
@@ -39,7 +42,7 @@ describe('makeTransformer', () => {
         const postcssRoot: any = {
             source: {
                 input: {
-                    file: '/var/project/public/style.css',
+                    file: values.cssSourceFilePath,
                 },
             },
             walkAtRules: (regex, callback) => {
@@ -54,7 +57,7 @@ describe('makeTransformer', () => {
         };
         const postcssResult: any = {
             opts: {
-                to: '/var/project/public/dist/style.css',
+                to: values.postcssOptsTo,
             },
         };
 
@@ -66,6 +69,7 @@ describe('makeTransformer', () => {
             isRemoteFontFaceDeclaration,
             processDeclaration,
             downloadFont,
+            calculateCssOutputDirectoryPath,
         } = require('./functions');
 
         isRemoteFontFaceDeclaration.mockReturnValue(true);
@@ -83,14 +87,16 @@ describe('makeTransformer', () => {
                 },
             });
         });
+        calculateCssOutputDirectoryPath.mockReturnValueOnce(values.cssDestinationDirectoryPath);
 
         /**
          * 
          */
 
         const settings: PluginSettings = {
-            cssDestinationDirectoryPath: values.directoryPath,
-            directoryPath: values.directoryPath,
+            cssSourceDirectoryPath: values.cssSourceDirectoryPath,
+            cssDestinationDirectoryPath: values.cssDestinationDirectoryPath,
+            fontDirectoryPath: values.directoryPath,
             autoCreateDirectory: false,
         };
 
@@ -104,7 +110,14 @@ describe('makeTransformer', () => {
          */
 
         expect(isRemoteFontFaceDeclaration).toBeCalledWith(postcssNode);
+        expect(calculateCssOutputDirectoryPath).toBeCalledWith(
+            values.cssSourceFilePath,
+            values.cssSourceDirectoryPath,
+            values.cssDestinationDirectoryPath,
+            values.postcssOptsTo
+        );
 
+        // TODO: more assertions.
     });
 
 

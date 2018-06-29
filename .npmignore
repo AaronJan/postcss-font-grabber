@@ -1,4 +1,5 @@
 /src/**/*.ts
+__mocks__
 /dev/
 /tests/
 /jest.config.js

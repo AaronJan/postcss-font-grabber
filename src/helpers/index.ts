@@ -100,23 +100,23 @@ export async function makeDirectoryRecursively(directoryPath: string): Promise<v
     const fsStat = promisify(fs.stat);
     const fsMkdir = promisify(fs.mkdir);
 
-    await path.resolve(directoryPath)
-        .split(path.sep)
-        .filter(directory => directory !== '')
-        .reduce<Promise<string>>(async (result, current) => {
-            const resultString = await result;
-            const currentPath = path.normalize(`${resultString}${path.sep}${current}`);
+    const pathParts = path.resolve(directoryPath).split(path.sep);
+    const firstPart = <string>pathParts.shift();
 
-            try {
-                await fsStat(currentPath);
-            } catch (e) {
-                if (e.code === 'ENOENT') {
-                    await fsMkdir(currentPath);
-                } else {
-                    throw e;
-                }
+    await pathParts.reduce<Promise<string>>(async (result, current) => {
+        const resultString = await result;
+        const currentPath = `${resultString}${path.sep}${current}`;
+
+        try {
+            await fsStat(currentPath);
+        } catch (e) {
+            if (e.code === 'ENOENT') {
+                await fsMkdir(currentPath);
+            } else {
+                throw e;
             }
-            return currentPath;
-        }, Promise.resolve(''));
+        }
+        return currentPath;
+    }, Promise.resolve(firstPart));
 }
 

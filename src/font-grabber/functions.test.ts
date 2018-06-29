@@ -2,50 +2,52 @@ import sinon from 'sinon';
 import url from 'url';
 import crypto from 'crypto';
 
-import { PluginOptions } from '../contracts';
+import { PluginOptions, PluginSettings } from '../contracts';
 import * as functions from './functions';
 
 describe('parseOptions', () => {
 
     test('minimal options', () => {
         const options: PluginOptions = {
-            cssDestinationDirectoryPath: '/var/project/public/dist/',
+            cssDest: '/var/project/public/dist/',
         };
         const settings = functions.parseOptions(options);
 
-        expect(settings).toEqual({
+        expect(settings).toEqual(<PluginSettings>{
+            cssSourceDirectoryPath: undefined,
             cssDestinationDirectoryPath: '/var/project/public/dist',
-            directoryPath: undefined,
+            fontDirectoryPath: undefined,
             autoCreateDirectory: true,
         });
     });
 
     test('`autoCreateDirectory` is false', () => {
         const options: PluginOptions = {
-            cssDestinationDirectoryPath: '/var/project/public/dist/',
-            autoCreateDirectory: false,
+            cssDest: '/var/project/public/dist/',
+            mkdir: false,
         };
         const settings = functions.parseOptions(options);
 
-        expect(settings).toEqual({
+        expect(settings).toEqual(<PluginSettings>{
+            cssSourceDirectoryPath: undefined,
             cssDestinationDirectoryPath: '/var/project/public/dist',
-            directoryPath: undefined,
+            fontDirectoryPath: undefined,
             autoCreateDirectory: false,
         });
     });
 
     test('`directoryPath`', () => {
-        const directoryPath = 'my-project/dist';
+        const fontDir = 'my-project/dist';
         const options: PluginOptions = {
-            cssDestinationDirectoryPath: '/var/project/public/dist/',
-            directoryPath,
+            cssDest: '/var/project/public/dist/',
+            fontDir,
         };
         const settings = functions.parseOptions(options);
 
         if (process.platform.match(/^win/)) {
-            expect(settings.directoryPath).toMatch(/[a-z]:\\.*?my\-project\\dist/i);
+            expect(settings.fontDirectoryPath).toMatch(/[a-z]:\\.*?my\-project\\dist/i);
         } else {
-            expect(settings.directoryPath).toMatch(/\/.*?my-project\/dist/i);
+            expect(settings.fontDirectoryPath).toMatch(/\/.*?my-project\/dist/i);
         }
     });
 
