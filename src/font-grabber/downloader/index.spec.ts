@@ -14,6 +14,7 @@ namespace Helper {
 describe('Downloader shloud download fonts correctly', () => {
 
     test('should download remote font files to specified directory from a HTTP URL', async () => {
+        const responseSize = 1024;
         const fakeWritableStream = new stream.Writable();
         const createWriteStream = jest.fn().mockReturnValue(fakeWritableStream);
         const fakeFs = {
@@ -21,12 +22,11 @@ describe('Downloader shloud download fonts correctly', () => {
         };
         const fakeResponse: any = {
             statusCode: 200,
-            readableLength: 1024,
             pipe: jest.fn().mockImplementation((writable, options) => {
                 //
             }),
             on: jest.fn().mockImplementation((event, callback) => {
-                callback();
+                callback(Buffer.alloc(responseSize));
             }),
         };
 
@@ -40,13 +40,14 @@ describe('Downloader shloud download fonts correctly', () => {
         const fileInfo = downloader.download(urlObject, filePath);
 
         expect(await fileInfo).toEqual({
-            size: 1024,
+            size: responseSize,
         });
 
         expect(createWriteStream).toBeCalledWith(filePath);
         expect(fakeResponse.pipe.mock.calls[0][0]).toBe(fakeWritableStream);
         expect(fakeResponse.pipe.mock.calls[0][1]).toEqual({ end: true });
-        expect(fakeResponse.on.mock.calls[0][0]).toBe('end');
+        expect(fakeResponse.on.mock.calls[0][0]).toBe('data');
+        expect(fakeResponse.on.mock.calls[1][0]).toBe('end');
         expect(typeof fakeResponse.on.mock.calls[0][1]).toBe('function');
     });
 

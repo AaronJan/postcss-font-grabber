@@ -24,7 +24,7 @@ export interface Job {
     remoteFont: RemoteFont,
     css: {
         sourcePath: string,
-        targetDirectoryPath: string,
+        destinationDirectoryPath: string,
     },
     font: {
         path: string,

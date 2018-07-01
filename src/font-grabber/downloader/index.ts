@@ -18,11 +18,13 @@ export class Downloader implements DownloaderContract {
     /**
      * 
      * @param urlObject 
-     * @param filePath 
+     * @param filePath
+     * @param timeout 
      */
     async download(
         urlObject: url.UrlWithStringQuery,
-        filePath: string
+        filePath: string,
+        timeout: number = 10000
     ): Promise<FileInfo> {
         const downloadedFile = this.fsLibrary.createWriteStream(filePath);
         const get = urlObject.protocol === 'http:' ? this.httpGet : this.httpsGet;
@@ -34,7 +36,7 @@ export class Downloader implements DownloaderContract {
                 'path',
             ]),
             {
-                timeout: 10000,
+                timeout,
             }
         );
 
@@ -44,9 +46,14 @@ export class Downloader implements DownloaderContract {
                     return reject(new Error(`Remote server respond HTTP status: ${response.statusCode} instead of 200.`));
                 }
 
+                let fileSize = 0;
+
+                response.on('data', (chunk: Buffer) => {
+                    fileSize += chunk.length;
+                });
                 response.pipe(downloadedFile, { end: true });
                 response.on('end', () => resolve({
-                    size: response.readableLength,
+                    size: fileSize,
                 }));
             });
         });

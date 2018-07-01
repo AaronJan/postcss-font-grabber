@@ -15,6 +15,7 @@ export interface FileInfo {
 export interface Downloader {
     download(
         urlObject: url.UrlWithStringQuery,
-        filePath: string
+        filePath: string,
+        timeout?: number
     ): Promise<FileInfo>;
 }

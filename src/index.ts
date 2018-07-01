@@ -35,5 +35,6 @@ export {
     plugin as postcssFontGrabber,
 };
 
+export default plugin;
 
 

@@ -2,7 +2,7 @@ import url from 'url';
 
 jest.mock('./functions');
 
-import { PluginSettings, Job, JobResult } from '../contracts';
+import { PluginSettings, Job, JobResult, Meta } from '../contracts';
 import { FontGrabber } from './index';
 
 describe('makeTransformer', () => {
@@ -10,7 +10,6 @@ describe('makeTransformer', () => {
     test('works as expected', async () => {
         const values = {
             directoryPath: '/var/project/public/fonts',
-            remoteFontHost: 'https://example.com/',
             remoteFontUrl: 'https://example.com/folder/font1.woff2',
             fontFormat: 'woff2',
             cssSourceFilePath: '/var/project/public/style.css',
@@ -20,16 +19,17 @@ describe('makeTransformer', () => {
             localFontPath: '/var/project/public/dist/font1.woff2',
             fontFilename: 'font1.woff2',
             postcssOptsTo: '/var/project/public/dist/style.css',
+            fontFileSize: 123321,
         };
 
         const job: Job = {
             remoteFont: {
-                urlObject: url.parse(values.remoteFontHost),
+                urlObject: url.parse(values.remoteFontUrl),
                 format: values.fontFormat,
             },
             css: {
                 sourcePath: values.cssSourceFilePath,
-                targetDirectoryPath: values.cssDestinationDirectoryPath,
+                destinationDirectoryPath: values.cssDestinationDirectoryPath,
             },
             font: {
                 path: values.localFontPath,
@@ -83,7 +83,7 @@ describe('makeTransformer', () => {
             return Promise.resolve({
                 job,
                 download: {
-                    size: 123,
+                    size: values.fontFileSize,
                 },
             });
         });
@@ -103,6 +103,12 @@ describe('makeTransformer', () => {
         const fontGrabber = new FontGrabber(settings);
         const transformer = fontGrabber.makeTransformer();
 
+        const onDone = new Promise((resolve, reject) => {
+            fontGrabber.onDone(meta => {
+                resolve(meta);
+            });
+        });
+
         await transformer(postcssRoot, postcssResult);
 
         /**
@@ -116,8 +122,29 @@ describe('makeTransformer', () => {
             values.cssDestinationDirectoryPath,
             values.postcssOptsTo
         );
-
-        // TODO: more assertions.
+        expect(onDone).resolves.toEqual(<Meta>{
+            jobResults: [
+                {
+                    download: {
+                        size: values.fontFileSize,
+                    },
+                    job: {
+                        remoteFont: {
+                            urlObject: url.parse(values.remoteFontUrl),
+                            format: values.fontFormat,
+                        },
+                        css: {
+                            sourcePath: values.cssSourceFilePath,
+                            destinationDirectoryPath: values.cssDestinationDirectoryPath,
+                        },
+                        font: {
+                            path: values.localFontPath,
+                            filename: values.fontFilename,
+                        },
+                    },
+                },
+            ],
+        });
     });
 
 

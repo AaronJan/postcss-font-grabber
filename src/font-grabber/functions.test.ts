@@ -277,13 +277,13 @@ describe('processDeclaration', () => {
             value: ' url(https://example.com/folder/font1.woff2) format(woff2), url(https://example.com/folder/font2.woff)',
         };
         const cssSourceFilePath = '/var/project/public/style.css';
-        const cssTargetDirectoryPath = '/var/project/public/dist';
+        const cssDestinationDirectoryPath = '/var/project/public/dist';
         const downloadDirectoryPath = '/var/project/public/fonts/';
 
         const jobs = functions.processDeclaration(
             declaration,
             cssSourceFilePath,
-            cssTargetDirectoryPath,
+            cssDestinationDirectoryPath,
             downloadDirectoryPath
         );
         const expected = [
@@ -294,7 +294,7 @@ describe('processDeclaration', () => {
                 },
                 css: {
                     sourcePath: cssSourceFilePath,
-                    targetDirectoryPath: cssTargetDirectoryPath,
+                    destinationDirectoryPath: cssDestinationDirectoryPath,
                 },
                 font: {
                     path: `${downloadDirectoryPath}font1.woff2`,
@@ -308,7 +308,7 @@ describe('processDeclaration', () => {
                 },
                 css: {
                     sourcePath: cssSourceFilePath,
-                    targetDirectoryPath: cssTargetDirectoryPath,
+                    destinationDirectoryPath: cssDestinationDirectoryPath,
                 },
                 font: {
                     path: `${downloadDirectoryPath}font2.woff`,

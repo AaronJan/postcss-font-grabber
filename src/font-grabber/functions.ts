@@ -122,17 +122,17 @@ export function reduceSrcsToFontInfos(fontInfos: RemoteFont[], src: string): Rem
  * 
  * @param declaration 
  * @param cssSourceFilePath 
- * @param cssTargetDirectoryPath
+ * @param cssDestinationDirectoryPath
  * @param downloadDirectoryPath 
  */
 export function processDeclaration(
     declaration: postcss.Declaration,
     cssSourceFilePath: string,
-    cssTargetDirectoryPath: string,
+    cssDestinationDirectoryPath: string,
     downloadDirectoryPath: string
 ): Job[] {
     const relativePath = path.relative(
-        cssTargetDirectoryPath,
+        cssDestinationDirectoryPath,
         downloadDirectoryPath
     );
 
@@ -147,7 +147,7 @@ export function processDeclaration(
             remoteFont: fontInfo,
             css: {
                 sourcePath: cssSourceFilePath,
-                targetDirectoryPath: cssTargetDirectoryPath,
+                destinationDirectoryPath: cssDestinationDirectoryPath,
             },
             font: {
                 path: filePath,
@@ -204,7 +204,7 @@ export function calculateCssOutputDirectoryPath(
 ): string | undefined {
     const cssDirectoryPath = path.dirname(cssSourceFilePath);
     const finalPostcssOptionsTo = defaultValue(postcssOptionsTo, undefined);
-    // 首先得到源css的目录差异
+    // Get the sub-folder stucture.
     const cssSourceDirectoryPath = defaultValue(
         cssSourceDirectoryPathFromSetting,
         cssDirectoryPath
