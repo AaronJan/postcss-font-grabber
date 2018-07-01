@@ -12,7 +12,7 @@
 
 > 🎉 Here is the brand new `2.0` version that is completely rewritten in TypeScript (with typing), for `1.0` please see [HERE](https://github.com/AaronJan/postcss-font-grabber/tree/v1.x)
 
-A [`PostCSS`](https://github.com/postcss/postcss) plugin, it only do one thing and good at it: **download remote font that's in your CSS file (`@font-face`)**.
+A [`PostCSS`](https://github.com/postcss/postcss) plugin, it only does one thing and good at it: **download remote fonts that's in your CSS file (`@font-face`)**.
 
 
 ## Motivation
