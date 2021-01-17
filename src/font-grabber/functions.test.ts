@@ -127,6 +127,22 @@ describe('getFontFilename', () => {
         expect(functions.getFontFilename(urlObject)).toBe(stubUrlMd5);
     });
 
+    test('URL object\s `pathname` contains no extension', () => {
+        const stubUrl = 'https://example.com/font';
+        const stubUrlMd5 = crypto.createHash('md5')
+            .update(stubUrl)
+            .digest()
+            .toString('hex');
+
+        const urlObject: any = {
+            protocol: 'https',
+            hostname: 'example.com',
+            pathname: 'font',
+        };
+
+        expect(functions.getFontFilename(urlObject)).toBe(stubUrlMd5);
+    });
+
     test('works as expected', () => {
         const urlObject: any = {
             pathname: 'folder1/folder2/font.file.woff2',
