@@ -60,11 +60,15 @@ export function isFontFaceSrcContainsRemoteFontUri(cssValue: string): boolean {
  * @param fontUriObject 
  */
 export function getFontFilename(fontUriObject: url.UrlWithStringQuery): string {
-    if (!fontUriObject.pathname) {
-        return md5(url.format(fontUriObject));
+    if (fontUriObject.pathname) {
+        const baseName = path.basename(fontUriObject.pathname);
+
+        if (baseName?.indexOf('.') !== -1) {
+            return baseName;
+        }
     }
 
-    return path.basename(fontUriObject.pathname);
+    return md5(url.format(fontUriObject));
 }
 
 /**
