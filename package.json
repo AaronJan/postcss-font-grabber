@@ -1,6 +1,6 @@
 {
   "name": "postcss-font-grabber",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "Grab remote font files in @font-face, download them and update your CSS, just like that.",
   "author": "AaronJan <aaronjan@qq.com>",
   "homepage": "https://github.com/AaronJan/postcss-font-grabber",
