@@ -137,6 +137,14 @@ describe('getFontFilename', () => {
         expect(functions.getFontFilename(urlObject, '[name][ext]')).toBe('font.file.woff2');
     });
 
+    test('file has no extension', () => {
+        const urlObject: any = {
+            pathname: 'folder1/folder2/font',
+        };
+
+        expect(functions.getFontFilename(urlObject, '[name][ext]')).toBe('font');
+    });
+
     test('uses fixed extension', () => {
         const urlObject: any = {
             pathname: 'folder1/folder2/font.file.woff2',

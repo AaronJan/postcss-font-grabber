@@ -74,8 +74,10 @@ export function getFontFilename(
     return filePattern
         .replace(/\[path\]/gi, () => sanitize(pathname))
         .replace(/\[query\]/gi, () => sanitize(fontUriObject.query ?? ''))
-        .replace(/\[name\]/gi, () => path.basename(pathname)
-            .slice(0, -path.extname(pathname).length))
+        .replace(/\[name\]/gi, () => {
+            const baseName = path.basename(pathname);
+            return baseName.substr(0, baseName.length - path.extname(pathname).length)
+        })
         .replace(/\[ext\]/gi, () => path.extname(pathname))
         .replace(/\[hash\]/gi, () => md5(url.format(fontUriObject)));
 }
