@@ -37,4 +37,6 @@ export {
 
 export default plugin;
 
+export = plugin;
+
 
