@@ -49,7 +49,7 @@ npm install postcss-font-grabber --save-dev
 ```javascript
 gulp.task('css', () => {
     const postcss = require('gulp-postcss');
-    const postcssFontGrabber = require('postcss-font-grabber');
+    const { postcssFontGrabber } = require('postcss-font-grabber');
 
     return gulp.src('src/css/**/*.css')
         .pipe(postcss([
