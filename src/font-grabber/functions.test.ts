@@ -18,6 +18,7 @@ describe('parseOptions', () => {
             cssDestinationDirectoryPath: '/var/project/public/dist',
             fontDirectoryPath: undefined,
             autoCreateDirectory: true,
+            filePattern: '[name][ext]'
         });
     });
 
@@ -33,6 +34,7 @@ describe('parseOptions', () => {
             cssDestinationDirectoryPath: '/var/project/public/dist',
             fontDirectoryPath: undefined,
             autoCreateDirectory: false,
+            filePattern: '[name][ext]'
         });
     });
 
@@ -108,7 +110,7 @@ describe('getFontFilename', () => {
             hostname: 'example.com',
         };
 
-        expect(functions.getFontFilename(urlObject)).toBe(stubUrlMd5);
+        expect(functions.getFontFilename(urlObject, '[name][ext]')).toBe(stubUrlMd5);
     });
 
     test('URL object\'s `pathname` is an empty string', () => {
@@ -124,17 +126,62 @@ describe('getFontFilename', () => {
             pathname: '',
         };
 
-        expect(functions.getFontFilename(urlObject)).toBe(stubUrlMd5);
+        expect(functions.getFontFilename(urlObject, '[name][ext]')).toBe(stubUrlMd5);
     });
 
-    test('works as expected', () => {
+    test('uses existing file name', () => {
         const urlObject: any = {
             pathname: 'folder1/folder2/font.file.woff2',
         };
 
-        expect(functions.getFontFilename(urlObject)).toBe('font.file.woff2');
+        expect(functions.getFontFilename(urlObject, '[name][ext]')).toBe('font.file.woff2');
     });
 
+    test('uses fixed extension', () => {
+        const urlObject: any = {
+            pathname: 'folder1/folder2/font.file.woff2',
+        };
+
+        expect(functions.getFontFilename(urlObject, '[name].diff')).toBe('font.file.diff');
+    });
+
+    test('uses hash with extension', () => {
+        const stubUrl = 'https://example.com/folder1/folder2/font.file.woff2';
+        const stubUrlMd5 = crypto.createHash('md5')
+            .update(stubUrl)
+            .digest()
+            .toString('hex');
+
+        const urlObject: any = {
+            protocol: 'https',
+            hostname: 'example.com',
+            pathname: 'folder1/folder2/font.file.woff2',
+        };
+
+        expect(functions.getFontFilename(urlObject, '[hash][ext]')).toBe(`${stubUrlMd5}.woff2`);
+    });
+
+    test('includes path in name', () => {
+        const urlObject: any = {
+            protocol: 'https',
+            hostname: 'example.com',
+            pathname: 'folder1/folder2/font.file.woff2',
+            query: '?id=12345!&version=abcde',
+        };
+
+        expect(functions.getFontFilename(urlObject, '[path]')).toBe('folder1folder2font.file.woff2');
+    });
+
+    test('includes query in name', () => {
+        const urlObject: any = {
+            protocol: 'https',
+            hostname: 'example.com',
+            pathname: 'folder1/folder2/font.file.woff2',
+            query: '?id=12345!&version=abcde',
+        };
+
+        expect(functions.getFontFilename(urlObject, '[name][query][ext]')).toBe('font.fileid=12345!&version=abcde.woff2');
+    });
 });
 
 describe('getFontFormatFromUrlObject', () => {
@@ -279,12 +326,14 @@ describe('processDeclaration', () => {
         const cssSourceFilePath = '/var/project/public/style.css';
         const cssDestinationDirectoryPath = '/var/project/public/dist';
         const downloadDirectoryPath = '/var/project/public/fonts/';
+        const filePattern = '[name][ext]';
 
         const jobs = functions.processDeclaration(
             declaration,
             cssSourceFilePath,
             cssDestinationDirectoryPath,
-            downloadDirectoryPath
+            downloadDirectoryPath,
+            filePattern
         );
         const expected = [
             {

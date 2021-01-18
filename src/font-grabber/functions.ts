@@ -6,6 +6,7 @@ import { PluginOptions, PluginSettings, RemoteFont, Job, JobResult, Dictionary }
 import { defaultValue, md5, trim } from '../helpers';
 import { Downloader as DownloaderContract } from './downloader/contract';
 import { Downloader } from './downloader';
+import sanitize from 'sanitize-filename';
 
 const fontExtensionToFormatMap: Dictionary<string> = {
     '.eot': 'embedded-opentype',
@@ -25,6 +26,7 @@ export function parseOptions(options: PluginOptions): PluginSettings {
         cssDestinationDirectoryPath: options.cssDest !== undefined ? path.resolve(options.cssDest) : undefined,
         fontDirectoryPath: options.fontDir !== undefined ? path.resolve(options.fontDir) : undefined,
         autoCreateDirectory: defaultValue(options.mkdir, true),
+        filePattern: options.filePattern ?? '[name][ext]',
     };
 }
 
@@ -59,12 +61,23 @@ export function isFontFaceSrcContainsRemoteFontUri(cssValue: string): boolean {
 /**
  * @param fontUriObject 
  */
-export function getFontFilename(fontUriObject: url.UrlWithStringQuery): string {
-    if (!fontUriObject.pathname) {
+export function getFontFilename(
+    fontUriObject: url.UrlWithStringQuery,
+    filePattern: string
+): string {
+    const pathname = fontUriObject.pathname;
+
+    if (!pathname) {
         return md5(url.format(fontUriObject));
     }
 
-    return path.basename(fontUriObject.pathname);
+    return filePattern
+        .replace(/\[path\]/gi, () => sanitize(pathname))
+        .replace(/\[query\]/gi, () => sanitize(fontUriObject.query ?? ''))
+        .replace(/\[name\]/gi, () => path.basename(pathname)
+            .slice(0, -path.extname(pathname).length))
+        .replace(/\[ext\]/gi, () => path.extname(pathname))
+        .replace(/\[hash\]/gi, () => md5(url.format(fontUriObject)));
 }
 
 /**
@@ -129,7 +142,8 @@ export function processDeclaration(
     declaration: postcss.Declaration,
     cssSourceFilePath: string,
     cssDestinationDirectoryPath: string,
-    downloadDirectoryPath: string
+    downloadDirectoryPath: string,
+    filePattern: string
 ): Job[] {
     const relativePath = path.relative(
         cssDestinationDirectoryPath,
@@ -140,7 +154,7 @@ export function processDeclaration(
     const fontInfos: RemoteFont[] = fontFaceSrcs.reduce(reduceSrcsToFontInfos, []);
 
     return fontInfos.map<Job>(fontInfo => {
-        const filename = getFontFilename(fontInfo.urlObject);
+        const filename = getFontFilename(fontInfo.urlObject, filePattern);
         const filePath = path.resolve(path.join(downloadDirectoryPath, filename));
 
         const job: Job = {
