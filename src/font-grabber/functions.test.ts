@@ -354,7 +354,6 @@ describe('processDeclaration', () => {
         ];
 
         expect(jobs).toEqual(expect.arrayContaining(expected));
-        expect(declaration.value).toEqual(' url(../fonts/font1.woff2) format(woff2), url(../fonts/font2.woff)');
     });
 
 });

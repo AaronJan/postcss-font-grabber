@@ -36,7 +36,9 @@ describe('makeTransformer', () => {
                 destinationDirectoryPath: values.cssSourceDirectoryPath,
                 destinationRelativePath: '.',
             },
-            declaration: {} as any as postcss.Declaration,
+            declaration: {
+                value: ' url(https://example.com/folder/font1.woff2) format(woff2), url(https://example.com/folder/font2.woff)',
+            } as postcss.Declaration,
         };
         const postcssNode: any = {
             value: ` url(${values.remoteFontUrl}) format(${values.fontFormat}) `,
@@ -147,6 +149,9 @@ describe('makeTransformer', () => {
                             destinationDirectoryPath: values.cssSourceDirectoryPath,
                             destinationRelativePath: '.',
                         },
+                        declaration: {
+                            value: ' url(../fonts/font1.woff2) format(woff2), url(../fonts/font2.woff)'
+                        }
                     },
                 },
             ],
