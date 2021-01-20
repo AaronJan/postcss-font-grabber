@@ -1,3 +1,4 @@
+import postcss from 'postcss';
 import url from 'url';
 
 jest.mock('./functions');
@@ -32,9 +33,10 @@ describe('makeTransformer', () => {
                 destinationDirectoryPath: values.cssDestinationDirectoryPath,
             },
             font: {
-                path: values.localFontPath,
-                filename: values.fontFilename,
+                destinationDirectoryPath: values.cssSourceDirectoryPath,
+                destinationRelativePath: '.',
             },
+            declaration: {} as any as postcss.Declaration,
         };
         const postcssNode: any = {
             value: ` url(${values.remoteFontUrl}) format(${values.fontFormat}) `,
@@ -84,6 +86,8 @@ describe('makeTransformer', () => {
                 job,
                 download: {
                     size: values.fontFileSize,
+                    fileName: values.fontFilename,
+                    path: values.localFontPath,
                 },
             });
         });
@@ -127,6 +131,8 @@ describe('makeTransformer', () => {
                 {
                     download: {
                         size: values.fontFileSize,
+                        fileName: values.fontFilename,
+                        path: values.localFontPath,
                     },
                     job: {
                         remoteFont: {
@@ -138,8 +144,8 @@ describe('makeTransformer', () => {
                             destinationDirectoryPath: values.cssDestinationDirectoryPath,
                         },
                         font: {
-                            path: values.localFontPath,
-                            filename: values.fontFilename,
+                            destinationDirectoryPath: values.cssSourceDirectoryPath,
+                            destinationRelativePath: '.',
                         },
                     },
                 },

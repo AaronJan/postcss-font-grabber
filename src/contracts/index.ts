@@ -21,20 +21,23 @@ export interface RemoteFont {
 }
 
 export interface Job {
+    declaration: postcss.Declaration,
     remoteFont: RemoteFont,
     css: {
         sourcePath: string,
         destinationDirectoryPath: string,
     },
     font: {
-        path: string,
-        filename: string,
+        destinationDirectoryPath: string,
+        destinationRelativePath: string,
     },
 }
 
 export interface JobResult {
     job: Job,
     download: {
+        path: string,
+        fileName: string,
         size: number,
     },
 }

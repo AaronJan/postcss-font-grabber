@@ -15,6 +15,14 @@ const fontExtensionToFormatMap: Dictionary<string> = {
     '.svg': 'svg',
 };
 
+const fontFormatToExtensionMap: Dictionary<string> = {
+    'font/embedded-opentype': '.eot',
+    'font/woff': '.woff',
+    'font/woff2': '.woff2',
+    'font/truetype': '.ttf',
+    'font/svg': '.svg',
+};
+
 /**
  * 
  * @param unvalidatedOptions 
@@ -59,7 +67,7 @@ export function isFontFaceSrcContainsRemoteFontUri(cssValue: string): boolean {
 /**
  * @param fontUriObject 
  */
-export function getFontFilename(fontUriObject: url.UrlWithStringQuery): string {
+export function getFontFilename(fontUriObject: url.UrlWithStringQuery, contentType: string | undefined): string {
     if (fontUriObject.pathname) {
         const baseName = path.basename(fontUriObject.pathname);
 
@@ -68,7 +76,11 @@ export function getFontFilename(fontUriObject: url.UrlWithStringQuery): string {
         }
     }
 
-    return md5(url.format(fontUriObject));
+    const extension = contentType === undefined
+        ? ''
+        : fontFormatToExtensionMap[contentType] ?? '';
+
+    return `${md5(url.format(fontUriObject))}${extension}`;
 }
 
 /**
@@ -140,31 +152,24 @@ export function processDeclaration(
         downloadDirectoryPath
     );
 
+    const fontDirectoryPath = path.resolve(downloadDirectoryPath);
+
     const fontFaceSrcs = declaration.value.split(',').map(trim);
     const fontInfos: RemoteFont[] = fontFaceSrcs.reduce(reduceSrcsToFontInfos, []);
 
     return fontInfos.map<Job>(fontInfo => {
-        const filename = getFontFilename(fontInfo.urlObject);
-        const filePath = path.resolve(path.join(downloadDirectoryPath, filename));
-
         const job: Job = {
+            declaration,
             remoteFont: fontInfo,
             css: {
                 sourcePath: cssSourceFilePath,
                 destinationDirectoryPath: cssDestinationDirectoryPath,
             },
             font: {
-                path: filePath,
-                filename: filename,
+                destinationDirectoryPath: fontDirectoryPath,
+                destinationRelativePath: relativePath,
             },
         };
-
-        const originalUri = url.format(fontInfo.urlObject);
-        const replaceTo = path.join(relativePath, job.font.filename)
-            // Replace `\\` to `/` for Windows compatibility.
-            .replace(/\\/g, '/');
-
-        declaration.value = declaration.value.replace(originalUri, replaceTo);
 
         return job;
     });
@@ -181,13 +186,15 @@ export function downloadFont(
 ): Promise<JobResult> {
     return downloader.download(
         job.remoteFont.urlObject,
-        job.font.path
+        job.font.destinationDirectoryPath
     )
         .then(fileInfo => {
             return {
                 job,
                 download: {
                     size: fileInfo.size,
+                    fileName: fileInfo.fileName,
+                    path: fileInfo.filePath,
                 },
             };
         });

@@ -1,10 +1,12 @@
 import fs from 'fs';
 import http from 'http';
 import https from 'https';
+import path from 'path';
 import url from 'url';
 
 import { FileSystem, HttpGet, FileInfo, Downloader as DownloaderContract } from './contract';
 import { pick } from '../../helpers';
+import { getFontFilename } from '../functions';
 
 export class Downloader implements DownloaderContract {
     constructor(
@@ -23,10 +25,9 @@ export class Downloader implements DownloaderContract {
      */
     async download(
         urlObject: url.UrlWithStringQuery,
-        filePath: string,
+        downloadDirectory: string,
         timeout: number = 10000
     ): Promise<FileInfo> {
-        const downloadedFile = this.fsLibrary.createWriteStream(filePath);
         const get = urlObject.protocol === 'http:' ? this.httpGet : this.httpsGet;
         const requestOptions = Object.assign(
             pick(urlObject, [
@@ -46,6 +47,12 @@ export class Downloader implements DownloaderContract {
                     return reject(new Error(`Remote server respond HTTP status: ${response.statusCode} instead of 200.`));
                 }
 
+                const contentType = response.headers ? response.headers['content-type'] : undefined;
+
+                const fileName = getFontFilename(urlObject, contentType);
+                const filePath = path.resolve(downloadDirectory, fileName);
+
+                const downloadedFile = this.fsLibrary.createWriteStream(filePath);
                 let fileSize = 0;
 
                 response.on('data', (chunk: Buffer) => {
@@ -54,6 +61,8 @@ export class Downloader implements DownloaderContract {
                 response.pipe(downloadedFile, { end: true });
                 response.on('end', () => resolve({
                     size: fileSize,
+                    fileName,
+                    filePath,
                 }));
             });
         });

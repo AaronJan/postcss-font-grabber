@@ -9,13 +9,15 @@ export interface FileSystem {
 export type HttpGet = typeof http.get;
 
 export interface FileInfo {
+    fileName: string,
+    filePath: string,
     size: number,
 }
 
 export interface Downloader {
     download(
         urlObject: url.UrlWithStringQuery,
-        filePath: string,
+        destinationDirectoryPath: string,
         timeout?: number
     ): Promise<FileInfo>;
 }

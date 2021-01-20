@@ -1,6 +1,7 @@
 import EventEmitter from 'events';
 import { Transformer as PostcssTransformer, Declaration as PostcssDeclaration } from 'postcss';
 import { debuglog } from 'util';
+import path from 'path';
 import url from 'url';
 import postcss from 'postcss';
 
@@ -112,7 +113,12 @@ export class FontGrabber {
 
             return this.createDirectoryIfWantTo(fontOutputToDirectory)
                 .then(() => Promise.all(uniqueJobs.map(job => downloadFont(job))))
-                .then(jobResults => this.done(jobResults));
+                .then(jobResults => {
+                    for (const jobResult of jobResults) {
+                        this.updateDeclaration(jobResult);
+                    }
+                    this.done(jobResults)
+                });
         };
     }
 
@@ -132,6 +138,21 @@ export class FontGrabber {
         return this.settings.autoCreateDirectory === true ?
             makeDirectoryRecursively(directoryPath) :
             Promise.resolve();
+    }
+
+    /**
+     * 
+     * @param result 
+     */
+    protected updateDeclaration(result: JobResult) {
+        const originalUri = url.format(result.job.remoteFont.urlObject);
+        const replaceTo = path.join(result.job.font.destinationRelativePath, result.download.path)
+            // Replace `\\` to `/` for Windows compatibility.
+            .replace(/\\/g, '/');
+
+        if (result.job.declaration.value) {
+            result.job.declaration.value = result.job.declaration.value.replace(originalUri, replaceTo);
+        }
     }
 
 }

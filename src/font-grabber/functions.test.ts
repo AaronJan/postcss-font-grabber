@@ -108,7 +108,9 @@ describe('getFontFilename', () => {
             hostname: 'example.com',
         };
 
-        expect(functions.getFontFilename(urlObject)).toBe(stubUrlMd5);
+        const contentType = 'font/woff2';
+
+        expect(functions.getFontFilename(urlObject, contentType)).toBe(stubUrlMd5 + '.woff2');
     });
 
     test('URL object\'s `pathname` is an empty string', () => {
@@ -124,10 +126,12 @@ describe('getFontFilename', () => {
             pathname: '',
         };
 
-        expect(functions.getFontFilename(urlObject)).toBe(stubUrlMd5);
+        const contentType = 'font/woff2';
+
+        expect(functions.getFontFilename(urlObject, contentType)).toBe(stubUrlMd5 + '.woff2');
     });
 
-    test('URL object\s `pathname` contains no extension', () => {
+    test('URL object\'s `pathname` contains no extension', () => {
         const stubUrl = 'https://example.com/font';
         const stubUrlMd5 = crypto.createHash('md5')
             .update(stubUrl)
@@ -140,15 +144,29 @@ describe('getFontFilename', () => {
             pathname: 'font',
         };
 
-        expect(functions.getFontFilename(urlObject)).toBe(stubUrlMd5);
+        const contentType = 'font/truetype';
+
+        expect(functions.getFontFilename(urlObject, contentType)).toBe(stubUrlMd5 + '.ttf');
     });
 
-    test('works as expected', () => {
+    test('pathname overrides contentType', () => {
         const urlObject: any = {
             pathname: 'folder1/folder2/font.file.woff2',
         };
 
-        expect(functions.getFontFilename(urlObject)).toBe('font.file.woff2');
+        const contentType = 'font/woff';
+
+        expect(functions.getFontFilename(urlObject, contentType)).toBe('font.file.woff2');
+    });
+
+    test('contentType isn\'t required', () => {
+        const urlObject: any = {
+            pathname: 'folder1/folder2/font.file.woff',
+        };
+
+        const contentType = undefined;
+
+        expect(functions.getFontFilename(urlObject, contentType)).toBe('font.file.woff');
     });
 
 });
