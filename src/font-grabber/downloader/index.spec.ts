@@ -33,17 +33,20 @@ describe('Downloader shloud download fonts correctly', () => {
         const fakeHttpGet = Helper.makeGet(fakeResponse);
         const fakeHttpsGet = Helper.makeGet(fakeResponse);
 
-        const urlObject = url.parse('http://example.com');
-        const filePath = '/var/project/public/fonts/font1.woff';
+        const fileName = 'font1.woff';
+        const urlObject = url.parse('http://example.com/' + fileName);
+        const downloadDir = '/var/project/public/fonts/';
 
         const downloader = new Downloader(fakeFs, fakeHttpGet, fakeHttpsGet);
-        const fileInfo = downloader.download(urlObject, filePath);
+        const fileInfo = downloader.download(urlObject, downloadDir);
 
         expect(await fileInfo).toEqual({
+            fileName,
+            filePath: downloadDir + fileName,
             size: responseSize,
         });
 
-        expect(createWriteStream).toBeCalledWith(filePath);
+        expect(createWriteStream).toBeCalledWith(downloadDir + fileName);
         expect(fakeResponse.pipe.mock.calls[0][0]).toBe(fakeWritableStream);
         expect(fakeResponse.pipe.mock.calls[0][1]).toEqual({ end: true });
         expect(fakeResponse.on.mock.calls[0][0]).toBe('data');

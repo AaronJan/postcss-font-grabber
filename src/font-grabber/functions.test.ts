@@ -330,9 +330,10 @@ describe('processDeclaration', () => {
                     sourcePath: cssSourceFilePath,
                     destinationDirectoryPath: cssDestinationDirectoryPath,
                 },
+                declaration,
                 font: {
-                    path: `${downloadDirectoryPath}font1.woff2`,
-                    filename: 'font1.woff2',
+                    destinationDirectoryPath: downloadDirectoryPath,
+                    destinationRelativePath: "../fonts"
                 },
             },
             {
@@ -344,9 +345,10 @@ describe('processDeclaration', () => {
                     sourcePath: cssSourceFilePath,
                     destinationDirectoryPath: cssDestinationDirectoryPath,
                 },
+                declaration,
                 font: {
-                    path: `${downloadDirectoryPath}font2.woff`,
-                    filename: 'font2.woff',
+                    destinationDirectoryPath: downloadDirectoryPath,
+                    destinationRelativePath: "../fonts"
                 },
             },
         ];
