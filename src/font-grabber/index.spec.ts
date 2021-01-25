@@ -55,10 +55,12 @@ describe('makeTransformer', () => {
                 callback(rule);
             },
         };
-        const postcssResult: any = {
-            opts: {
-                to: values.postcssOptsTo,
-            },
+        const postcssResult = {
+            result: {
+                opts: {
+                    to: values.postcssOptsTo,
+                },
+            }
         };
 
         /**
@@ -109,7 +111,7 @@ describe('makeTransformer', () => {
             });
         });
 
-        await transformer(postcssRoot, postcssResult);
+        await (transformer.Once as Function)(postcssRoot, postcssResult);
 
         /**
          * assertions

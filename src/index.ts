@@ -26,9 +26,10 @@ function makeInstance(options: PluginOptions | undefined): FontGrabber {
 /**
  * 
  */
-const plugin = postcss.plugin<PluginOptions>('postcss-font-grabber', options => {
+const plugin = options => {
     return makeInstance(options).makeTransformer();
-});
+};
+plugin.postcss = true
 
 export {
     makeInstance,

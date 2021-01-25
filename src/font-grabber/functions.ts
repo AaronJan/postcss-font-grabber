@@ -1,4 +1,4 @@
-import postcss from 'postcss';
+import { ChildNode, Declaration } from 'postcss';
 import path from 'path';
 import url from 'url';
 
@@ -30,10 +30,10 @@ export function parseOptions(options: PluginOptions): PluginSettings {
 
 /**
  * 
- * @param {postcss.ChildNode} node
+ * @param {ChildNode} node
  * @returns {boolean}
  */
-export function isRemoteFontFaceDeclaration(node: postcss.ChildNode): boolean {
+export function isRemoteFontFaceDeclaration(node: ChildNode): boolean {
     if (node.type !== 'decl') {
         return false;
     }
@@ -130,7 +130,7 @@ export function reduceSrcsToFontInfos(fontInfos: RemoteFont[], src: string): Rem
  * @param downloadDirectoryPath 
  */
 export function processDeclaration(
-    declaration: postcss.Declaration,
+    declaration: Declaration,
     cssSourceFilePath: string,
     cssDestinationDirectoryPath: string,
     downloadDirectoryPath: string

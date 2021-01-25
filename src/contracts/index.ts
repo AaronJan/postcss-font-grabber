@@ -1,4 +1,4 @@
-import postcss from 'postcss';
+import { ChildNode } from 'postcss';
 import * as url from 'url';
 
 export interface PluginOptions {
@@ -45,6 +45,6 @@ export interface Meta {
 
 export type DoneCallback = (meta: Meta) => void;
 
-export type PostcssChildNodeProcessor = (node: postcss.ChildNode, index: number) => any;
+export type PostcssChildNodeProcessor = (node: ChildNode, index: number) => any;
 
 export type Dictionary<U> = { [key: string]: U };
