@@ -6,7 +6,7 @@
  * @author         AaronJan <https://github.com/AaronJan/postcss-font-grabber>
  */
 
-import postcss from 'postcss';
+import { PluginCreator } from 'postcss';
 import { PluginOptions } from './contracts';
 import { FontGrabber } from './font-grabber';
 import { parseOptions } from './font-grabber/functions';
@@ -26,7 +26,7 @@ function makeInstance(options: PluginOptions | undefined): FontGrabber {
 /**
  * 
  */
-const plugin = options => {
+const plugin: PluginCreator<PluginOptions> = options => {
     return makeInstance(options).makeTransformer();
 };
 plugin.postcss = true
