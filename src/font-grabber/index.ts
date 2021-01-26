@@ -1,8 +1,11 @@
 import EventEmitter from 'events';
-import { Transformer as PostcssTransformer, Declaration as PostcssDeclaration } from 'postcss';
+import {
+    Result as PostcssResult,
+    Plugin as PostcssPlugin,
+    Declaration as PostcssDeclaration
+} from 'postcss';
 import { debuglog } from 'util';
 import url from 'url';
-import postcss from 'postcss';
 
 import {
     PluginSettings,
@@ -56,7 +59,7 @@ export class FontGrabber {
      * @param result 
      * @param key 
      */
-    protected getOptionFromPostcssResult(result: postcss.Result | undefined, key: string): string | undefined {
+    protected getOptionFromPostcssResult(result: PostcssResult | undefined, key: string): string | undefined {
         if (result === undefined) {
             return undefined;
         }
@@ -71,49 +74,56 @@ export class FontGrabber {
     /**
      * 
      */
-    makeTransformer(): PostcssTransformer {
-        return (root, result) => {
-            debug(`CSS file: [${root.source.input.file}]`);
-
-            const postcssOptionsTo = this.getOptionFromPostcssResult(result, 'to');
-
-            const cssOutputToDirectory = calculateCssOutputDirectoryPath(
-                root.source.input.file,
-                this.settings.cssSourceDirectoryPath,
-                this.settings.cssDestinationDirectoryPath,
-                postcssOptionsTo
-            );
-            const fontOutputToDirectory = defaultValue(
-                this.settings.fontDirectoryPath,
-                cssOutputToDirectory
-            );
-
-            if (cssOutputToDirectory === undefined || fontOutputToDirectory === undefined) {
-                throw new Error(`Can not determine output file path`);
-            }
-
-            debug(`css output to: [${cssOutputToDirectory}]`);
-            debug(`font output to: [${fontOutputToDirectory}]`);
-
-            const jobs: Job[] = [];
-            const declarationProcessor: PostcssChildNodeProcessor = node => {
-                if (isRemoteFontFaceDeclaration(node)) {
-                    jobs.push(...processDeclaration(
-                        <PostcssDeclaration>node,
-                        root.source.input.file,
-                        cssOutputToDirectory,
-                        fontOutputToDirectory
-                    ));
+    makeTransformer(): PostcssPlugin {
+        return {
+            postcssPlugin: 'postcss-font-grabber',
+            Once: (root, { result }) => {
+                if (!root.source || !root.source.input.file) {
+                    throw new Error(`Can not determine output file path`);
                 }
-            };
-            root.walkAtRules(/font-face/, rule => rule.each(declarationProcessor));
 
-            const uniqueJobs = unique(jobs, job => md5(url.format(job.remoteFont.urlObject) + job.css.sourcePath));
+                debug(`CSS file: [${root.source.input.file}]`);
 
-            return this.createDirectoryIfWantTo(fontOutputToDirectory)
-                .then(() => Promise.all(uniqueJobs.map(job => downloadFont(job))))
-                .then(jobResults => this.done(jobResults));
-        };
+                const postcssOptionsTo = this.getOptionFromPostcssResult(result, 'to');
+
+                const cssOutputToDirectory = calculateCssOutputDirectoryPath(
+                    root.source.input.file,
+                    this.settings.cssSourceDirectoryPath,
+                    this.settings.cssDestinationDirectoryPath,
+                    postcssOptionsTo
+                );
+                const fontOutputToDirectory = defaultValue(
+                    this.settings.fontDirectoryPath,
+                    cssOutputToDirectory
+                );
+
+                if (cssOutputToDirectory === undefined || fontOutputToDirectory === undefined) {
+                    throw new Error(`Can not determine output file path`);
+                }
+
+                debug(`css output to: [${cssOutputToDirectory}]`);
+                debug(`font output to: [${fontOutputToDirectory}]`);
+
+                const jobs: Job[] = [];
+                const declarationProcessor: PostcssChildNodeProcessor = node => {
+                    if (isRemoteFontFaceDeclaration(node)) {
+                        jobs.push(...processDeclaration(
+                            <PostcssDeclaration>node,
+                            (root.source?.input.file as string),
+                            cssOutputToDirectory,
+                            fontOutputToDirectory
+                        ));
+                    }
+                };
+                root.walkAtRules(/font-face/, rule => rule.each(declarationProcessor));
+
+                const uniqueJobs = unique(jobs, job => md5(url.format(job.remoteFont.urlObject) + job.css.sourcePath));
+
+                this.createDirectoryIfWantTo(fontOutputToDirectory)
+                    .then(() => Promise.all(uniqueJobs.map(job => downloadFont(job))))
+                    .then(jobResults => this.done(jobResults));
+            }
+        }
     }
 
     /**
