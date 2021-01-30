@@ -1,8 +1,0 @@
-language: node_js
-node_js:
-  - "10"
-  - "9"
-  - "8"
-script: npm run test:cov
-after_success:
-  - 'npx jest --coverage --coverageReporters=text-lcov | ./node_modules/.bin/coveralls'

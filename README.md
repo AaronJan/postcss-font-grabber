@@ -5,7 +5,7 @@
 <p align="center">
   <a href="https://www.npmjs.com/package/postcss-font-grabber"><img src="https://img.shields.io/npm/v/postcss-font-grabber.svg?style=flat-square" alt="Build Status"></a>
   <a href="https://www.npmjs.com/package/postcss-font-grabber"><img src="https://img.shields.io/npm/dt/postcss-font-grabber.svg?style=flat-square" alt="Downloads"></a>
-  <a href="https://travis-ci.org/AaronJan/postcss-font-grabber"><img src="https://img.shields.io/travis/AaronJan/postcss-font-grabber.svg?style=flat-square" alt="Build Status"></a>
+  <a href="https://github.com/aaronjan/postcss-font-grabber"><img src="https://github.com/aaronjan/postcss-font-grabber/workflows/Node.js%20CI/badge.svg?branch=master" alt="Build status" /></a>
   <a href="https://coveralls.io/github/AaronJan/postcss-font-grabber?branch=master"><img src="https://img.shields.io/coveralls/AaronJan/postcss-font-grabber.svg?style=flat-square" alt="Coverage Status"></a>
   <a href="https://www.npmjs.com/package/postcss-font-grabber"><img src="https://img.shields.io/npm/l/postcss-font-grabber.svg?style=flat-square" alt="License"></a>
 </p>
@@ -44,25 +44,25 @@ npm install postcss-font-grabber --save-dev
 ### With Gulp
 
 ```javascript
-gulp.task("css", () => {
-  const postcss = require("gulp-postcss");
-  const { postcssFontGrabber } = require("postcss-font-grabber");
+gulp.task('css', () => {
+  const postcss = require('gulp-postcss');
+  const { postcssFontGrabber } = require('postcss-font-grabber');
 
   return gulp
-    .src("src/css/**/*.css")
+    .src('src/css/**/*.css')
     .pipe(
       postcss([
         postcssFontGrabber({
           // Because PostCSS-Font-Grabber can't get the paths outside itself, you
           // have to set them manually.
-          cssSrc: "src/css/",
-          cssDest: "dist/",
-          fontDir: "dist/fonts/",
+          cssSrc: 'src/css/',
+          cssDest: 'dist/',
+          fontDir: 'dist/fonts/',
           mkdir: true,
         }),
-      ])
+      ]),
     )
-    .pipe(gulp.dest("dist/"));
+    .pipe(gulp.dest('dist/'));
 });
 ```
 
@@ -77,13 +77,13 @@ gulp.task("css", () => {
 `webpack.config.js`:
 
 ```javascript
-import path from "path";
+import path from 'path';
 
 module.exports = {
-  entry: "./src/index.js",
+  entry: './src/index.js',
   output: {
-    filename: "bundle.js",
-    path: path.resolve(__dirname, "dist"),
+    filename: 'bundle.js',
+    path: path.resolve(__dirname, 'dist'),
   },
   module: {
     rules: [
@@ -92,22 +92,22 @@ module.exports = {
         exclude: /node_modules/,
         use: [
           {
-            loader: "style-loader",
+            loader: 'style-loader',
           },
           {
-            loader: "css-loader",
+            loader: 'css-loader',
             options: {
               importLoaders: 1,
             },
           },
           {
-            loader: "postcss-loader",
+            loader: 'postcss-loader',
           },
         ],
       },
       {
         test: /\.(woff|woff2|eot|ttf|otf)$/,
-        use: ["file-loader"],
+        use: ['file-loader'],
       },
     ],
   },
@@ -117,18 +117,18 @@ module.exports = {
 `postcss.config.js`:
 
 ```javascript
-import postcssFontGrabber from "postcss-font-grabber";
+import postcssFontGrabber from 'postcss-font-grabber';
 
 module.exports = {
   plugins: [
     postcssFontGrabber({
-      cssSrc: "src/css/",
+      cssSrc: 'src/css/',
       // When using with `Webpack` you must set `cssDest` as the same as `cssSrc`
       // since `Webpack` doesn't output CSS files directly, when done with
       // `PostCSS`, `Webpack` use `file-loader` to transpile local file
       // references in the CSS.
-      cssDest: "src/css/",
-      fontDir: "tmp/css/fonts/",
+      cssDest: 'src/css/',
+      fontDir: 'tmp/css/fonts/',
     }),
   ],
 };
@@ -144,9 +144,9 @@ Function `postcssFontGrabber` takes an object of options as parameter:
 
 ```javascript
 postcssFontGrabber({
-  cssSrc: "src/css/",
-  cssDest: "dist/",
-  fontDir: "dist/fonts/",
+  cssSrc: 'src/css/',
+  cssDest: 'dist/',
+  fontDir: 'dist/fonts/',
   mkdir: true,
 });
 ```
@@ -163,27 +163,27 @@ postcssFontGrabber({
 You can get the **metadata** of all execution details of `PostCSS-Font-Grabber`:
 
 ```javascript
-import postcss from "gulp-postcss";
-import { makeInstance } from "postcss-font-grabber";
+import postcss from 'gulp-postcss';
+import { makeInstance } from 'postcss-font-grabber';
 
-gulp.task("default", () => {
+gulp.task('default', () => {
   // Create instance manually:
   const fontGrabber = makeInstance({
-    cssSrc: "src/css/",
-    cssDest: "dist/",
-    fontDir: "dist/fonts/",
+    cssSrc: 'src/css/',
+    cssDest: 'dist/',
+    fontDir: 'dist/fonts/',
     mkdir: true,
   });
 
   // Register a callback:
-  fontGrabber.onDone((meta) => {
-    console.log("meta", JSON.stringify(meta, null, "    "));
+  fontGrabber.onDone(meta => {
+    console.log('meta', JSON.stringify(meta, null, '    '));
   });
 
   return gulp
-    .src("src/css/**/*.css")
+    .src('src/css/**/*.css')
     .pipe(postcss([fontGrabber.makeTransformer()]))
-    .pipe(gulp.dest("dist/"));
+    .pipe(gulp.dest('dist/'));
 });
 ```
 
