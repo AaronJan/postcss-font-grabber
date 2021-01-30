@@ -86,15 +86,9 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
-# NPM
-/package-lock.json
-
 # Project
 /dist/
 /coverage/
-
-# Development
 /dev/
-/coverage/
 /.vscode/
 /*.tgz
