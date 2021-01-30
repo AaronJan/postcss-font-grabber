@@ -2,228 +2,251 @@ import { ChildNode, Declaration } from 'postcss';
 import path from 'path';
 import url from 'url';
 
-import { PluginOptions, PluginSettings, RemoteFont, Job, JobResult, Dictionary } from '../contracts';
+import {
+  PluginOptions,
+  PluginSettings,
+  RemoteFont,
+  Job,
+  JobResult,
+  Dictionary,
+} from '../contracts';
 import { defaultValue, md5, trim } from '../helpers';
 import { Downloader as DownloaderContract } from './downloader/contract';
 import { Downloader } from './downloader';
 
 const fontExtensionToFormatMap: Dictionary<string> = {
-    '.eot': 'embedded-opentype',
-    '.woff': 'woff',
-    '.woff2': 'woff2',
-    '.ttf': 'truetype',
-    '.svg': 'svg',
+  '.eot': 'embedded-opentype',
+  '.woff': 'woff',
+  '.woff2': 'woff2',
+  '.ttf': 'truetype',
+  '.svg': 'svg',
 };
 
 /**
- * 
- * @param unvalidatedOptions 
+ *
+ * @param unvalidatedOptions
  */
 export function parseOptions(options: PluginOptions): PluginSettings {
-    return <PluginSettings>{
-        cssSourceDirectoryPath: options.cssSrc !== undefined ? path.resolve(options.cssSrc) : undefined,
-        cssDestinationDirectoryPath: options.cssDest !== undefined ? path.resolve(options.cssDest) : undefined,
-        fontDirectoryPath: options.fontDir !== undefined ? path.resolve(options.fontDir) : undefined,
-        autoCreateDirectory: defaultValue(options.mkdir, true),
-        fontDownloader: options.fontDownloader,
-    };
+  return <PluginSettings>{
+    cssSourceDirectoryPath:
+      options.cssSrc !== undefined ? path.resolve(options.cssSrc) : undefined,
+    cssDestinationDirectoryPath:
+      options.cssDest !== undefined ? path.resolve(options.cssDest) : undefined,
+    fontDirectoryPath:
+      options.fontDir !== undefined ? path.resolve(options.fontDir) : undefined,
+    autoCreateDirectory: defaultValue(options.mkdir, true),
+    fontDownloader: options.fontDownloader,
+  };
 }
 
 /**
- * 
+ *
  * @param {ChildNode} node
  * @returns {boolean}
  */
 export function isRemoteFontFaceDeclaration(node: ChildNode): boolean {
-    if (node.type !== 'decl') {
-        return false;
-    }
-    if (node.prop !== 'src') {
-        return false;
-    }
-    if (isFontFaceSrcContainsRemoteFontUri(node.value) === false) {
-        return false;
-    }
+  if (node.type !== 'decl') {
+    return false;
+  }
+  if (node.prop !== 'src') {
+    return false;
+  }
+  if (isFontFaceSrcContainsRemoteFontUri(node.value) === false) {
+    return false;
+  }
 
-    return true;
+  return true;
 }
 
 /**
- * 
- * @param cssValue 
+ *
+ * @param cssValue
  * @returns {boolean}
  */
 export function isFontFaceSrcContainsRemoteFontUri(cssValue: string): boolean {
-    return /(\s*|,|^)url\s*\(\s*[\'\"]?https?:/.test(cssValue);
+  return /(\s*|,|^)url\s*\(\s*[\'\"]?https?:/.test(cssValue);
 }
 
 /**
- * @param fontUriObject 
+ * @param fontUriObject
  */
 export function getFontFilename(fontUriObject: url.UrlWithStringQuery): string {
-    if (fontUriObject.pathname) {
-        const baseName = path.basename(fontUriObject.pathname);
+  if (fontUriObject.pathname) {
+    const baseName = path.basename(fontUriObject.pathname);
 
-        if (baseName?.indexOf('.') !== -1) {
-            return baseName;
-        }
+    if (baseName?.indexOf('.') !== -1) {
+      return baseName;
     }
+  }
 
-    return md5(url.format(fontUriObject));
+  return md5(url.format(fontUriObject));
 }
 
 /**
- * 
- * @param urlObject 
+ *
+ * @param urlObject
  */
-export function getFontFormatFromUrlObject(urlObject: url.UrlWithStringQuery): undefined | string {
-    if (!urlObject.pathname) {
-        return;
-    }
+export function getFontFormatFromUrlObject(
+  urlObject: url.UrlWithStringQuery,
+): undefined | string {
+  if (!urlObject.pathname) {
+    return;
+  }
 
-    const extension = path.extname(urlObject.pathname);
+  const extension = path.extname(urlObject.pathname);
 
-    return fontExtensionToFormatMap[extension] !== undefined ?
-        fontExtensionToFormatMap[extension] :
-        undefined;
+  return fontExtensionToFormatMap[extension] !== undefined
+    ? fontExtensionToFormatMap[extension]
+    : undefined;
 }
 
 /**
- * 
- * @param src 
+ *
+ * @param src
  */
 export function getFontInfoFromSrc(src: string): undefined | RemoteFont {
-    const result = /^url\s*\(\s*[\'\"]?(https?:[^\)]*?)[\'\"]?\s*\)(\s+format\([\'\"]?([a-zA-Z0-9]+)[\'\"]?\))?/.exec(src);
-    if (result === null) {
-        return undefined;
-    }
+  const result = /^url\s*\(\s*[\'\"]?(https?:[^\)]*?)[\'\"]?\s*\)(\s+format\([\'\"]?([a-zA-Z0-9]+)[\'\"]?\))?/.exec(
+    src,
+  );
+  if (result === null) {
+    return undefined;
+  }
 
-    const urlObject = url.parse(result[1]);
-    const format = result[3] !== undefined ? result[3] : getFontFormatFromUrlObject(urlObject);
-    if (format === undefined) {
-        throw new Error(`can't get the font format from @font-face src: [${src}]`);
-    }
+  const urlObject = url.parse(result[1]);
+  const format =
+    result[3] !== undefined ? result[3] : getFontFormatFromUrlObject(urlObject);
+  if (format === undefined) {
+    throw new Error(`can't get the font format from @font-face src: [${src}]`);
+  }
 
-    return {
-        urlObject,
-        format,
-    };
+  return {
+    urlObject,
+    format,
+  };
 }
 
 /**
- * 
- * @param fontInfos 
- * @param src 
+ *
+ * @param fontInfos
+ * @param src
  */
-export function reduceSrcsToFontInfos(fontInfos: RemoteFont[], src: string): RemoteFont[] {
-    const fontInfo = getFontInfoFromSrc(src);
+export function reduceSrcsToFontInfos(
+  fontInfos: RemoteFont[],
+  src: string,
+): RemoteFont[] {
+  const fontInfo = getFontInfoFromSrc(src);
 
-    return fontInfo === undefined ?
-        fontInfos :
-        [...fontInfos, fontInfo];
+  return fontInfo === undefined ? fontInfos : [...fontInfos, fontInfo];
 }
 
 /**
- * 
- * @param declaration 
- * @param cssSourceFilePath 
+ *
+ * @param declaration
+ * @param cssSourceFilePath
  * @param cssDestinationDirectoryPath
- * @param downloadDirectoryPath 
+ * @param downloadDirectoryPath
  */
 export function processDeclaration(
-    declaration: Declaration,
-    cssSourceFilePath: string,
-    cssDestinationDirectoryPath: string,
-    downloadDirectoryPath: string
+  declaration: Declaration,
+  cssSourceFilePath: string,
+  cssDestinationDirectoryPath: string,
+  downloadDirectoryPath: string,
 ): Job[] {
-    const relativePath = path.relative(
-        cssDestinationDirectoryPath,
-        downloadDirectoryPath
-    );
+  const relativePath = path.relative(
+    cssDestinationDirectoryPath,
+    downloadDirectoryPath,
+  );
 
-    const fontFaceSrcs = declaration.value.split(',').map(trim);
-    const fontInfos: RemoteFont[] = fontFaceSrcs.reduce(reduceSrcsToFontInfos, []);
+  const fontFaceSrcs = declaration.value.split(',').map(trim);
+  const fontInfos: RemoteFont[] = fontFaceSrcs.reduce(
+    reduceSrcsToFontInfos,
+    [],
+  );
 
-    return fontInfos.map<Job>(fontInfo => {
-        const filename = getFontFilename(fontInfo.urlObject);
-        const filePath = path.resolve(path.join(downloadDirectoryPath, filename));
+  return fontInfos.map<Job>(fontInfo => {
+    const filename = getFontFilename(fontInfo.urlObject);
+    const filePath = path.resolve(path.join(downloadDirectoryPath, filename));
 
-        const job: Job = {
-            remoteFont: fontInfo,
-            css: {
-                sourcePath: cssSourceFilePath,
-                destinationDirectoryPath: cssDestinationDirectoryPath,
-            },
-            font: {
-                path: filePath,
-                filename: filename,
-            },
-        };
+    const job: Job = {
+      remoteFont: fontInfo,
+      css: {
+        sourcePath: cssSourceFilePath,
+        destinationDirectoryPath: cssDestinationDirectoryPath,
+      },
+      font: {
+        path: filePath,
+        filename: filename,
+      },
+    };
 
-        const originalUri = url.format(fontInfo.urlObject);
-        const replaceTo = path.join(relativePath, job.font.filename)
-            // Replace `\\` to `/` for Windows compatibility.
-            .replace(/\\/g, '/');
+    const originalUri = url.format(fontInfo.urlObject);
+    const replaceTo = path
+      .join(relativePath, job.font.filename)
+      // Replace `\\` to `/` for Windows compatibility.
+      .replace(/\\/g, '/');
 
-        declaration.value = declaration.value.replace(originalUri, replaceTo);
+    declaration.value = declaration.value.replace(originalUri, replaceTo);
 
-        return job;
+    return job;
+  });
+}
+
+/**
+ *
+ * @param job
+ * @param downloader
+ */
+export function downloadFont(
+  job: Job,
+  downloader: DownloaderContract = new Downloader(),
+): Promise<JobResult> {
+  return downloader
+    .download(job.remoteFont.urlObject, job.font.path)
+    .then(fileInfo => {
+      return {
+        job,
+        download: {
+          size: fileInfo.size,
+        },
+      };
     });
 }
 
 /**
- * 
- * @param job 
- * @param downloader 
- */
-export function downloadFont(
-    job: Job,
-    downloader: DownloaderContract = new Downloader()
-): Promise<JobResult> {
-    return downloader.download(
-        job.remoteFont.urlObject,
-        job.font.path
-    )
-        .then(fileInfo => {
-            return {
-                job,
-                download: {
-                    size: fileInfo.size,
-                },
-            };
-        });
-}
-
-/**
- * 
- * @param cssSourceFilePath 
- * @param cssSourceDirectoryPathFromSetting 
- * @param cssDestinationDirectoryPathFromSetting 
- * @param postcssOptionsTo 
+ *
+ * @param cssSourceFilePath
+ * @param cssSourceDirectoryPathFromSetting
+ * @param cssDestinationDirectoryPathFromSetting
+ * @param postcssOptionsTo
  */
 export function calculateCssOutputDirectoryPath(
-    cssSourceFilePath: string,
-    cssSourceDirectoryPathFromSetting: string | undefined,
-    cssDestinationDirectoryPathFromSetting: string | undefined,
-    postcssOptionsTo: string | undefined
+  cssSourceFilePath: string,
+  cssSourceDirectoryPathFromSetting: string | undefined,
+  cssDestinationDirectoryPathFromSetting: string | undefined,
+  postcssOptionsTo: string | undefined,
 ): string | undefined {
-    const cssDirectoryPath = path.dirname(cssSourceFilePath);
-    const finalPostcssOptionsTo = defaultValue(postcssOptionsTo, undefined);
-    // Get the sub-folder stucture.
-    const cssSourceDirectoryPath = defaultValue(
-        cssSourceDirectoryPathFromSetting,
-        cssDirectoryPath
-    );
-    const cssDestinationDirectoryPath = defaultValue(
-        cssDestinationDirectoryPathFromSetting,
-        (finalPostcssOptionsTo !== undefined ? path.dirname(finalPostcssOptionsTo) : undefined)
-    );
+  const cssDirectoryPath = path.dirname(cssSourceFilePath);
+  const finalPostcssOptionsTo = defaultValue(postcssOptionsTo, undefined);
+  // Get the sub-folder stucture.
+  const cssSourceDirectoryPath = defaultValue(
+    cssSourceDirectoryPathFromSetting,
+    cssDirectoryPath,
+  );
+  const cssDestinationDirectoryPath = defaultValue(
+    cssDestinationDirectoryPathFromSetting,
+    finalPostcssOptionsTo !== undefined
+      ? path.dirname(finalPostcssOptionsTo)
+      : undefined,
+  );
 
-    if (cssDestinationDirectoryPath === undefined) {
-        return undefined;
-    }
+  if (cssDestinationDirectoryPath === undefined) {
+    return undefined;
+  }
 
-    const cssToSourceDirectoryRelation = path.relative(cssSourceDirectoryPath, cssDirectoryPath);
+  const cssToSourceDirectoryRelation = path.relative(
+    cssSourceDirectoryPath,
+    cssDirectoryPath,
+  );
 
-    return path.join(cssDestinationDirectoryPath, cssToSourceDirectoryRelation);
+  return path.join(cssDestinationDirectoryPath, cssToSourceDirectoryRelation);
 }

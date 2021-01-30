@@ -12,29 +12,26 @@ import { FontGrabber } from './font-grabber';
 import { parseOptions } from './font-grabber/functions';
 
 /**
- * 
- * @param options 
+ *
+ * @param options
  */
 function makeInstance(options: PluginOptions | undefined): FontGrabber {
-    if (options === undefined) {
-        throw new Error(`You must specify plugin options.`);
-    }
+  if (options === undefined) {
+    throw new Error(`You must specify plugin options.`);
+  }
 
-    return new FontGrabber(parseOptions(options));
+  return new FontGrabber(parseOptions(options));
 }
 
 /**
- * 
+ *
  */
 const plugin: PluginCreator<PluginOptions> = options => {
-    return makeInstance(options).makeTransformer();
+  return makeInstance(options).makeTransformer();
 };
-plugin.postcss = true
+plugin.postcss = true;
 
-export {
-    makeInstance,
-    plugin as postcssFontGrabber,
-};
+export { makeInstance, plugin as postcssFontGrabber };
 
 export { FontDownloader } from './contracts';
 
