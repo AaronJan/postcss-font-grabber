@@ -25,6 +25,7 @@ export function parseOptions(options: PluginOptions): PluginSettings {
         cssDestinationDirectoryPath: options.cssDest !== undefined ? path.resolve(options.cssDest) : undefined,
         fontDirectoryPath: options.fontDir !== undefined ? path.resolve(options.fontDir) : undefined,
         autoCreateDirectory: defaultValue(options.mkdir, true),
+        fontDownloader: options.fontDownloader,
     };
 }
 

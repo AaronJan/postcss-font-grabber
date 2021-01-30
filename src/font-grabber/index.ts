@@ -14,6 +14,7 @@ import {
     JobResult,
     DoneCallback,
     PostcssChildNodeProcessor,
+    FontDownloader,
 } from '../contracts';
 import {
     processDeclaration,
@@ -32,6 +33,7 @@ export class FontGrabber {
     protected doneEmitter: EventEmitter;
     protected downloadJobs: void[];
     protected settings: PluginSettings;
+    protected fontDownloader: FontDownloader;
 
     /**
      * 
@@ -40,6 +42,7 @@ export class FontGrabber {
     constructor(settings: PluginSettings) {
         this.doneEmitter = new EventEmitter();
         this.settings = settings;
+        this.fontDownloader = settings.fontDownloader ?? downloadFont;
         this.downloadJobs = [];
     }
 
@@ -120,7 +123,7 @@ export class FontGrabber {
                 const uniqueJobs = unique(jobs, job => md5(url.format(job.remoteFont.urlObject) + job.css.sourcePath));
 
                 this.createDirectoryIfWantTo(fontOutputToDirectory)
-                    .then(() => Promise.all(uniqueJobs.map(job => downloadFont(job))))
+                    .then(() => Promise.all(uniqueJobs.map(job => this.fontDownloader(job))))
                     .then(jobResults => this.done(jobResults));
             }
         }

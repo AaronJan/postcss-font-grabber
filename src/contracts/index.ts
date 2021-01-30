@@ -6,6 +6,7 @@ export interface PluginOptions {
     cssDest?: string,
     fontDir?: string,
     mkdir?: boolean,
+    fontDownloader?: FontDownloader,
 };
 
 export interface PluginSettings {
@@ -13,6 +14,7 @@ export interface PluginSettings {
     cssDestinationDirectoryPath: string | undefined,
     fontDirectoryPath: string | undefined,
     autoCreateDirectory: boolean,
+    fontDownloader?: FontDownloader,
 };
 
 export interface RemoteFont {
@@ -48,3 +50,7 @@ export type DoneCallback = (meta: Meta) => void;
 export type PostcssChildNodeProcessor = (node: ChildNode, index: number) => any;
 
 export type Dictionary<U> = { [key: string]: U };
+
+export interface FontDownloader {
+    (job:Job): Promise<JobResult>,
+}

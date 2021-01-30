@@ -36,4 +36,6 @@ export {
     plugin as postcssFontGrabber,
 };
 
+export { FontDownloader } from './contracts';
+
 export default plugin;
