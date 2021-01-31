@@ -36,7 +36,7 @@ You may not want to use remote fonts, because:
 > Requires: `Node >= 8.0`, `postcss 8.*`
 
 ```
-npm install postcss-font-grabber --save-dev
+npm install postcss postcss-font-grabber --save-dev
 ```
 
 ## Usages
