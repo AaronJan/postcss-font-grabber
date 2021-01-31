@@ -32,19 +32,12 @@ import {
 
 const debug = debuglog('PostcssFontGrabber - FontGrabber');
 
-/**
- *
- */
 export class FontGrabber {
   protected doneEmitter: EventEmitter;
   protected downloadJobs: void[];
   protected settings: PluginSettings;
   protected fontDownloader: FontDownloader;
 
-  /**
-   *
-   * @param {PluginSettings} settings
-   */
   constructor(settings: PluginSettings) {
     this.doneEmitter = new EventEmitter();
     this.settings = settings;
@@ -52,9 +45,6 @@ export class FontGrabber {
     this.downloadJobs = [];
   }
 
-  /**
-   * @param {JobResult[]} jobResults
-   */
   protected done(jobResults: JobResult[]) {
     const meta: Meta = {
       jobResults: jobResults,
@@ -63,11 +53,6 @@ export class FontGrabber {
     this.doneEmitter.emit('done', meta);
   }
 
-  /**
-   *
-   * @param result
-   * @param key
-   */
   protected getOptionFromPostcssResult(
     result: PostcssResult | undefined,
     key: string,
@@ -83,9 +68,6 @@ export class FontGrabber {
     return getOrDefault<string | undefined>(<any>result.opts, key, undefined);
   }
 
-  /**
-   *
-   */
   makeTransformer(): PostcssPlugin {
     return {
       postcssPlugin: 'postcss-font-grabber',
@@ -147,18 +129,10 @@ export class FontGrabber {
     };
   }
 
-  /**
-   *
-   * @param callback
-   */
   onDone(callback: DoneCallback) {
     this.doneEmitter.on('done', callback);
   }
 
-  /**
-   *
-   * @param directoryPath
-   */
   protected createDirectoryIfWantTo(directoryPath: string): Promise<void> {
     return this.settings.autoCreateDirectory === true
       ? makeDirectoryRecursively(directoryPath)
