@@ -22,10 +22,6 @@ const fontExtensionToFormatMap: Dictionary<string> = {
   '.svg': 'svg',
 };
 
-/**
- *
- * @param unvalidatedOptions
- */
 export function parseOptions(options: PluginOptions): PluginSettings {
   return <PluginSettings>{
     cssSourceDirectoryPath:
@@ -39,11 +35,6 @@ export function parseOptions(options: PluginOptions): PluginSettings {
   };
 }
 
-/**
- *
- * @param {ChildNode} node
- * @returns {boolean}
- */
 export function isRemoteFontFaceDeclaration(node: ChildNode): boolean {
   if (node.type !== 'decl') {
     return false;
@@ -58,18 +49,10 @@ export function isRemoteFontFaceDeclaration(node: ChildNode): boolean {
   return true;
 }
 
-/**
- *
- * @param cssValue
- * @returns {boolean}
- */
 export function isFontFaceSrcContainsRemoteFontUri(cssValue: string): boolean {
   return /(\s*|,|^)url\s*\(\s*[\'\"]?https?:/.test(cssValue);
 }
 
-/**
- * @param fontUriObject
- */
 export function getFontFilename(fontUriObject: url.UrlWithStringQuery): string {
   if (fontUriObject.pathname) {
     const baseName = path.basename(fontUriObject.pathname);
@@ -82,10 +65,6 @@ export function getFontFilename(fontUriObject: url.UrlWithStringQuery): string {
   return md5(url.format(fontUriObject));
 }
 
-/**
- *
- * @param urlObject
- */
 export function getFontFormatFromUrlObject(
   urlObject: url.UrlWithStringQuery,
 ): undefined | string {
@@ -100,10 +79,6 @@ export function getFontFormatFromUrlObject(
     : undefined;
 }
 
-/**
- *
- * @param src
- */
 export function getFontInfoFromSrc(src: string): undefined | RemoteFont {
   const result = /^url\s*\(\s*[\'\"]?(https?:[^\)]*?)[\'\"]?\s*\)(\s+format\([\'\"]?([a-zA-Z0-9]+)[\'\"]?\))?/.exec(
     src,
@@ -125,11 +100,6 @@ export function getFontInfoFromSrc(src: string): undefined | RemoteFont {
   };
 }
 
-/**
- *
- * @param fontInfos
- * @param src
- */
 export function reduceSrcsToFontInfos(
   fontInfos: RemoteFont[],
   src: string,
@@ -139,13 +109,6 @@ export function reduceSrcsToFontInfos(
   return fontInfo === undefined ? fontInfos : [...fontInfos, fontInfo];
 }
 
-/**
- *
- * @param declaration
- * @param cssSourceFilePath
- * @param cssDestinationDirectoryPath
- * @param downloadDirectoryPath
- */
 export function processDeclaration(
   declaration: Declaration,
   cssSourceFilePath: string,
@@ -191,11 +154,6 @@ export function processDeclaration(
   });
 }
 
-/**
- *
- * @param job
- * @param downloader
- */
 export function downloadFont(
   job: Job,
   downloader: DownloaderContract = new Downloader(),
@@ -212,13 +170,6 @@ export function downloadFont(
     });
 }
 
-/**
- *
- * @param cssSourceFilePath
- * @param cssSourceDirectoryPathFromSetting
- * @param cssDestinationDirectoryPathFromSetting
- * @param postcssOptionsTo
- */
 export function calculateCssOutputDirectoryPath(
   cssSourceFilePath: string,
   cssSourceDirectoryPathFromSetting: string | undefined,

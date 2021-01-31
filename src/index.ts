@@ -11,10 +11,6 @@ import { PluginOptions } from './contracts';
 import { FontGrabber } from './font-grabber';
 import { parseOptions } from './font-grabber/functions';
 
-/**
- *
- * @param options
- */
 function makeInstance(options: PluginOptions | undefined): FontGrabber {
   if (options === undefined) {
     throw new Error(`You must specify plugin options.`);
@@ -23,9 +19,6 @@ function makeInstance(options: PluginOptions | undefined): FontGrabber {
   return new FontGrabber(parseOptions(options));
 }
 
-/**
- *
- */
 const plugin: PluginCreator<PluginOptions> = options => {
   return makeInstance(options).makeTransformer();
 };

@@ -20,12 +20,6 @@ export class Downloader implements DownloaderContract {
     //
   }
 
-  /**
-   *
-   * @param urlObject
-   * @param filePath
-   * @param timeout
-   */
   async download(
     urlObject: url.UrlWithStringQuery,
     filePath: string,

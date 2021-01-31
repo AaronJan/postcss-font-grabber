@@ -3,19 +3,10 @@ import path from 'path';
 import { promisify } from 'util';
 import { createHash } from 'crypto';
 
-/**
- *
- */
 export type Dictionary<T> = {
   [property: string]: T;
 };
 
-/**
- *
- * @param object
- * @param key
- * @param defaultValue
- */
 export function getOrDefault<T>(
   object: Dictionary<T>,
   key: string,
@@ -28,11 +19,6 @@ export function getOrDefault<T>(
   return object[key];
 }
 
-/**
- *
- * @param value
- * @param defaultValue
- */
 export function defaultValue<T>(value: T | undefined, defaultValue: T): T {
   if (value === undefined) {
     return defaultValue;
@@ -41,11 +27,6 @@ export function defaultValue<T>(value: T | undefined, defaultValue: T): T {
   return value;
 }
 
-/**
- *
- * @param object
- * @param keys
- */
 export function pick<T, K extends keyof T>(
   object: T,
   keys: ReadonlyArray<K>,
@@ -64,19 +45,10 @@ export function trim(text: string): string {
   return text.replace(/(^\s+|\s+$)/g, '');
 }
 
-/**
- *
- * @param original
- */
 export function md5(original: string): string {
   return createHash('md5').update(original).digest().toString('hex');
 }
 
-/**
- *
- * @param array
- * @param identify
- */
 export function unique<T>(array: T[], identify?: (value: T) => string): T[] {
   if (identify === undefined) {
     return array.filter((value, index) => array.indexOf(value) === index);
@@ -96,10 +68,6 @@ export function unique<T>(array: T[], identify?: (value: T) => string): T[] {
   }, []);
 }
 
-/**
- *
- * @param directoryPath
- */
 export async function makeDirectoryRecursively(
   directoryPath: string,
 ): Promise<void> {
