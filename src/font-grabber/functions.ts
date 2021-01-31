@@ -154,20 +154,20 @@ export function processDeclaration(
   });
 }
 
-export function downloadFont(
+export async function downloadFont(
   job: Job,
   downloader: DownloaderContract = new Downloader(),
 ): Promise<JobResult> {
-  return downloader
-    .download(job.remoteFont.urlObject, job.font.path)
-    .then(fileInfo => {
-      return {
-        job,
-        download: {
-          size: fileInfo.size,
-        },
-      };
-    });
+  const fileInfo = await downloader.download(
+    job.remoteFont.urlObject,
+    job.font.path,
+  );
+  return {
+    job,
+    download: {
+      size: fileInfo.size,
+    },
+  };
 }
 
 export function calculateCssOutputDirectoryPath(
