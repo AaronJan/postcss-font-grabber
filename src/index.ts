@@ -25,7 +25,5 @@ const plugin: PluginCreator<PluginOptions> = options => {
 plugin.postcss = true;
 
 export { makeInstance, plugin as postcssFontGrabber };
-
 export { FontDownloader } from './contracts';
-
 export default plugin;
