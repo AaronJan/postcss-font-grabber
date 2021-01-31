@@ -71,7 +71,7 @@ export class FontGrabber {
   makeTransformer(): PostcssPlugin {
     return {
       postcssPlugin: 'postcss-font-grabber',
-      Once: (root, { result }) => {
+      Once: async (root, { result }) => {
         if (!root.source || !root.source.input.file) {
           throw new Error(`Can not determine output file path`);
         }
@@ -116,15 +116,15 @@ export class FontGrabber {
         };
         root.walkAtRules(/font-face/, rule => rule.each(declarationProcessor));
 
+        await this.createDirectoryIfWantTo(fontOutputToDirectory);
+
         const uniqueJobs = unique(jobs, job =>
           md5(url.format(job.remoteFont.urlObject) + job.css.sourcePath),
         );
-
-        this.createDirectoryIfWantTo(fontOutputToDirectory)
-          .then(() =>
-            Promise.all(uniqueJobs.map(job => this.fontDownloader(job))),
-          )
-          .then(jobResults => this.done(jobResults));
+        const jobResults = await Promise.all(
+          uniqueJobs.map(job => this.fontDownloader(job)),
+        );
+        this.done(jobResults);
       },
     };
   }
@@ -133,9 +133,11 @@ export class FontGrabber {
     this.doneEmitter.on('done', callback);
   }
 
-  protected createDirectoryIfWantTo(directoryPath: string): Promise<void> {
+  protected async createDirectoryIfWantTo(
+    directoryPath: string,
+  ): Promise<void> {
     return this.settings.autoCreateDirectory === true
-      ? makeDirectoryRecursively(directoryPath)
+      ? await makeDirectoryRecursively(directoryPath)
       : Promise.resolve();
   }
 }
