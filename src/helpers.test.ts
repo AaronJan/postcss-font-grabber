@@ -9,7 +9,7 @@ import {
   md5,
   unique,
   makeDirectoryRecursively,
-} from './index';
+} from './helpers';
 
 describe('getOrDefault', () => {
   test('value is exist', () => {

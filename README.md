@@ -57,7 +57,7 @@ gulp.task('css', () => {
           // have to set them manually.
           cssSrc: 'src/css/',
           cssDest: 'dist/',
-          fontDir: 'dist/fonts/',
+          fontDest: 'dist/fonts/',
           mkdir: true,
         }),
       ]),
@@ -128,7 +128,7 @@ module.exports = {
       // `PostCSS`, `Webpack` use `file-loader` to transpile local file
       // references in the CSS.
       cssDest: 'src/css/',
-      fontDir: 'tmp/css/fonts/',
+      fontDest: 'tmp/css/fonts/',
     }),
   ],
 };
@@ -136,7 +136,7 @@ module.exports = {
 
 ### With Only PostCSS
 
-`PostCSS-Font-Grabber` will use `from` and `to` options of `PostCSS` setting as the default options of `cssSrc` (`from`), `cssDest` and `fontDir` (`to`).
+`PostCSS-Font-Grabber` will use `from` and `to` options of `PostCSS` setting as the default options of `cssSrc` (`from`), `cssDest` and `fontDest` (`to`).
 
 ## Options
 
@@ -146,17 +146,17 @@ Function `postcssFontGrabber` takes an object of options as parameter:
 postcssFontGrabber({
   cssSrc: 'src/css/',
   cssDest: 'dist/',
-  fontDir: 'dist/fonts/',
+  fontDest: 'dist/fonts/',
   mkdir: true,
 });
 ```
 
-|  Name   |   Type    | Default                              | Description                                                     |
-| :-----: | :-------: | :----------------------------------- | :-------------------------------------------------------------- |
-| cssSrc  | {string}  | `opts.from` from `PostCSS`'s setting | The root directory path of all CSS files                        |
-| cssDest | {string}  | `opts.to` from `PostCSS`'s setting   | The directory where the transpiled CSS files are in             |
-| fontDir | {string}  | the same as `cssDest`                | The directory where the downloaded fonts stored                 |
-|  mkdir  | {boolean} | `true`                               | whether to create non-existing directories automatically or not |
+|   Name   |   Type    | Default                              | Description                                                     |
+| :------: | :-------: | :----------------------------------- | :-------------------------------------------------------------- |
+|  cssSrc  | {string}  | `opts.from` from `PostCSS`'s setting | The root directory path of all CSS files                        |
+| cssDest  | {string}  | `opts.to` from `PostCSS`'s setting   | The directory where the transpiled CSS files are in             |
+| fontDest | {string}  | the same as `cssDest`                | The directory where the downloaded fonts stored                 |
+|  mkdir   | {boolean} | `true`                               | whether to create non-existing directories automatically or not |
 
 ## Dig Deeper
 
@@ -171,7 +171,7 @@ gulp.task('default', () => {
   const fontGrabber = makeInstance({
     cssSrc: 'src/css/',
     cssDest: 'dist/',
-    fontDir: 'dist/fonts/',
+    fontDest: 'dist/fonts/',
     mkdir: true,
   });
 

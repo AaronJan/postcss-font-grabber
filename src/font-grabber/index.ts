@@ -1,56 +1,49 @@
 import EventEmitter from 'events';
-import {
-  Result as PostcssResult,
-  Plugin as PostcssPlugin,
-  Declaration as PostcssDeclaration,
-} from 'postcss';
+import { Result as PostcssResult, Plugin as PostcssPlugin } from 'postcss';
 import { debuglog } from 'util';
-import url from 'url';
+import path from 'path';
 
+import { PluginOptions, FontSpec, Downloader } from '../types';
 import {
-  PluginSettings,
-  Meta,
-  Job,
-  JobResult,
-  DoneCallback,
-  PostcssChildNodeProcessor,
-  FontDownloader,
-} from '../contracts';
-import {
-  processDeclaration,
   isRemoteFontFaceDeclaration,
-  downloadFont,
-  calculateCssOutputDirectoryPath,
+  calculateFontSpecs,
+  saveFile,
+  calculateRelativePath,
+  getNewDeclarationValue,
+  getSubDirectoryPath,
 } from './functions';
-import {
-  unique,
-  md5,
-  makeDirectoryRecursively,
-  defaultValue,
-  getOrDefault,
-} from '../helpers';
+import { makeDirectoryRecursively, getOrDefault } from '../helpers';
+import { RuleProcessed } from '../constants';
+import { downloadFontFile } from './download';
+import { PostcssFontGrabberError } from './errors';
 
 const debug = debuglog('PostcssFontGrabber - FontGrabber');
 
+export function resolvePathIfNotUndefined(
+  pathOrUndefined?: string,
+): string | undefined {
+  return pathOrUndefined ? path.resolve(pathOrUndefined) : undefined;
+}
+
 export class FontGrabber {
+  protected downloader: Downloader;
   protected doneEmitter: EventEmitter;
-  protected downloadJobs: void[];
-  protected settings: PluginSettings;
-  protected fontDownloader: FontDownloader;
 
-  constructor(settings: PluginSettings) {
+  protected cssSourceDirectoryPath?: string;
+  protected cssDestinationDirectoryPath?: string;
+  protected fontDirectoryPath?: string;
+
+  constructor({
+    cssSrc,
+    cssDest,
+    fontDest,
+    downloader = downloadFontFile,
+  }: PluginOptions) {
     this.doneEmitter = new EventEmitter();
-    this.settings = settings;
-    this.fontDownloader = settings.fontDownloader ?? downloadFont;
-    this.downloadJobs = [];
-  }
-
-  protected done(jobResults: JobResult[]) {
-    const meta: Meta = {
-      jobResults: jobResults,
-    };
-
-    this.doneEmitter.emit('done', meta);
+    this.downloader = downloader;
+    this.cssSourceDirectoryPath = resolvePathIfNotUndefined(cssSrc);
+    this.cssDestinationDirectoryPath = resolvePathIfNotUndefined(cssDest);
+    this.fontDirectoryPath = resolvePathIfNotUndefined(fontDest);
   }
 
   protected getOptionFromPostcssResult(
@@ -68,76 +61,107 @@ export class FontGrabber {
     return getOrDefault<string | undefined>(<any>result.opts, key, undefined);
   }
 
-  makeTransformer(): PostcssPlugin {
+  createPlugin(): PostcssPlugin {
     return {
       postcssPlugin: 'postcss-font-grabber',
-      Once: async (root, { result }) => {
-        if (!root.source || !root.source.input.file) {
-          throw new Error(`Can not determine output file path`);
+      prepare: result => {
+        const postcssResultOptions = result.opts;
+        const cssSourceDirectoryPath =
+          this.cssSourceDirectoryPath ?? postcssResultOptions.from;
+        const cssDestinationDirectoryPath =
+          this.cssDestinationDirectoryPath ?? postcssResultOptions.to;
+        if (cssSourceDirectoryPath === undefined) {
+          throw new PostcssFontGrabberError(
+            `Must know where the source CSS files are stored to calculate relative URLs.`,
+          );
+        }
+        if (cssDestinationDirectoryPath === undefined) {
+          throw new PostcssFontGrabberError(
+            `Could not determine where the processed CSS files are stored, so postcss-font-grabber does not know how to update your CSS rules.`,
+          );
         }
 
-        debug(`CSS file: [${root.source.input.file}]`);
+        // Font directory path
+        const fontDirectoryPath =
+          this.fontDirectoryPath ?? cssDestinationDirectoryPath;
 
-        const postcssOptionsTo = this.getOptionFromPostcssResult(result, 'to');
-
-        const cssOutputToDirectory = calculateCssOutputDirectoryPath(
-          root.source.input.file,
-          this.settings.cssSourceDirectoryPath,
-          this.settings.cssDestinationDirectoryPath,
-          postcssOptionsTo,
-        );
-        const fontOutputToDirectory = defaultValue(
-          this.settings.fontDirectoryPath,
-          cssOutputToDirectory,
-        );
-
-        if (
-          cssOutputToDirectory === undefined ||
-          fontOutputToDirectory === undefined
-        ) {
-          throw new Error(`Can not determine output file path`);
-        }
-
-        debug(`css output to: [${cssOutputToDirectory}]`);
-        debug(`font output to: [${fontOutputToDirectory}]`);
-
-        const jobs: Job[] = [];
-        const declarationProcessor: PostcssChildNodeProcessor = node => {
-          if (isRemoteFontFaceDeclaration(node)) {
-            jobs.push(
-              ...processDeclaration(
-                <PostcssDeclaration>node,
-                root.source?.input.file as string,
-                cssOutputToDirectory,
-                fontOutputToDirectory,
-              ),
-            );
+        const downloaded: Record<
+          string,
+          {
+            filePath: string;
+            filename: string;
+            format: string | null;
+            fontSpec: FontSpec;
           }
+        > = {};
+
+        return {
+          Once: async () => {
+            await makeDirectoryRecursively(fontDirectoryPath);
+          },
+          OnceExit: () => {
+            // TODO: support callback
+          },
+          AtRule: async rule => {
+            if (rule[RuleProcessed]) {
+              return;
+            }
+            if (rule.name !== 'font-face') {
+              return;
+            }
+            // Mark it as processed.
+            rule[RuleProcessed] = true;
+
+            for (const node of rule.nodes) {
+              if (node.type !== 'decl') {
+                continue;
+              }
+
+              if (!isRemoteFontFaceDeclaration(node)) {
+                continue;
+              }
+
+              const fontSpecs = calculateFontSpecs(node);
+              for (const fontSpec of fontSpecs) {
+                const fontUrlString = fontSpec.parsedSrc.urlObject.href;
+
+                // Download the font file if it hasn't been downloaded yet.
+                if (!downloaded[fontUrlString]) {
+                  // download
+                  const downloadResult = await this.downloader(fontSpec);
+                  const details = await saveFile({
+                    downloadResult,
+                    fontSpec,
+                    fontDirectoryPath,
+                  });
+                  downloaded[fontUrlString] = {
+                    ...details,
+                    fontSpec,
+                  };
+                }
+
+                const downloadDetails = downloaded[fontUrlString];
+                const cssFileDirectoryRelativePath = getSubDirectoryPath(
+                  cssSourceDirectoryPath,
+                  downloadDetails.fontSpec.css.sourceFile,
+                );
+                const relativePath = calculateRelativePath({
+                  cssDirectoryPath: cssDestinationDirectoryPath,
+                  cssFileDirectoryRelativePath,
+                  fontFilePath: downloadDetails.filePath,
+                });
+
+                // Replace the value.
+                node.value = getNewDeclarationValue({
+                  value: node.value,
+                  oldUrl: fontUrlString,
+                  newUrl: relativePath,
+                });
+              }
+            }
+          },
         };
-        root.walkAtRules(/font-face/, rule => rule.each(declarationProcessor));
-
-        await this.createDirectoryIfWantTo(fontOutputToDirectory);
-
-        const uniqueJobs = unique(jobs, job =>
-          md5(url.format(job.remoteFont.urlObject) + job.css.sourcePath),
-        );
-        const jobResults = await Promise.all(
-          uniqueJobs.map(job => this.fontDownloader(job)),
-        );
-        this.done(jobResults);
       },
     };
-  }
-
-  onDone(callback: DoneCallback) {
-    this.doneEmitter.on('done', callback);
-  }
-
-  protected async createDirectoryIfWantTo(
-    directoryPath: string,
-  ): Promise<void> {
-    return this.settings.autoCreateDirectory === true
-      ? await makeDirectoryRecursively(directoryPath)
-      : Promise.resolve();
   }
 }
