@@ -31,6 +31,7 @@ You may not want to use remote fonts, because:
 - Written in TypeScript
 - Standalone without any dependency
 - Download font files concurrently
+- Infer font file extension from HTTP response header (Thanks to [@FTWinston](https://github.com/FTWinston))
 
 ## Installation
 
