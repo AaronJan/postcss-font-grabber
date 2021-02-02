@@ -18,5 +18,6 @@ const postcssFontGrabber: PluginCreator<PluginOptions> = (
 };
 postcssFontGrabber.postcss = true;
 
+export { FontSpec, Downloader, DownloadResult } from './types';
 export { postcssFontGrabber };
 export default postcssFontGrabber;
