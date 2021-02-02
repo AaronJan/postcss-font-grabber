@@ -12,7 +12,7 @@
 
 > `3.x` is under active development.
 
-A [`PostCSS`](https://github.com/postcss/postcss) plugin, it only does one thing and good at it: **download remote fonts, and update the corresponding `@font-face` rules**.
+A [`postcss`](https://github.com/postcss/postcss) plugin, it grabs remote font files and update your CSS, just like that.
 
 > `postcss-font-grabber` `v3.x` only works with `postcss` `v8`，for `postcss` `v7`, please take a look at the [`v2.x`](https://github.com/AaronJan/postcss-font-grabber/tree/v1.x).
 
@@ -27,6 +27,7 @@ You may not want to use remote fonts, because:
 
 ## Features
 
+- Support custom download function (the `download` option)
 - Written in TypeScript
 - Standalone without any dependency
 - Download font files concurrently
@@ -40,6 +41,35 @@ npm install postcss postcss-font-grabber --save-dev
 ```
 
 ## Usages
+
+### Options
+
+```typescript
+import { postcssFontGrabber, FontSpec } from 'postcss-font-grabber';
+import { Readable } from 'stream';
+
+postcssFontGrabber({
+  // The path of the source CSS directory.
+  // Normally you don't have to set this.
+  cssSrc: 'src/css/',
+
+  // The path of the CSS output directory.
+  // You have to specify this manually, PFG needs this to calculate relative
+  // path.
+  cssDest: 'src/css/',
+
+  // The directory to store the downloaded font files.
+  // It's the same as `cssDest` by default.
+  fontDest: 'tmp/css/fonts/',
+
+  // Custom function to download font files.
+  // Optional.
+  download: async (fontSpec: FontSpec) => ({
+    data: Readable.from(['font file content']),
+    mimeType: 'application/font-woff2',
+  }),
+}),
+```
 
 ### With Gulp
 
