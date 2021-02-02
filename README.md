@@ -53,12 +53,10 @@ gulp.task('css', () => {
     .pipe(
       postcss([
         postcssFontGrabber({
-          // Because PostCSS-Font-Grabber can't get the paths outside itself, you
-          // have to set them manually.
-          cssSrc: 'src/css/',
+          // postcss-font-grabber needs to know the CSS output
+          // directory in order to calculate the new font URL.
           cssDest: 'dist/',
           fontDest: 'dist/fonts/',
-          mkdir: true,
         }),
       ]),
     )
@@ -147,7 +145,6 @@ postcssFontGrabber({
   cssSrc: 'src/css/',
   cssDest: 'dist/',
   fontDest: 'dist/fonts/',
-  mkdir: true,
 });
 ```
 
@@ -158,68 +155,9 @@ postcssFontGrabber({
 | fontDest | {string}  | the same as `cssDest`                | The directory where the downloaded fonts stored                 |
 |  mkdir   | {boolean} | `true`                               | whether to create non-existing directories automatically or not |
 
-## Dig Deeper
+## Advanced Usages
 
-You can get the **metadata** of all execution details of `PostCSS-Font-Grabber`:
-
-```javascript
-import postcss from 'gulp-postcss';
-import { makeInstance } from 'postcss-font-grabber';
-
-gulp.task('default', () => {
-  // Create instance manually:
-  const fontGrabber = makeInstance({
-    cssSrc: 'src/css/',
-    cssDest: 'dist/',
-    fontDest: 'dist/fonts/',
-    mkdir: true,
-  });
-
-  // Register a callback:
-  fontGrabber.onDone(meta => {
-    console.log('meta', JSON.stringify(meta, null, '    '));
-  });
-
-  return gulp
-    .src('src/css/**/*.css')
-    .pipe(postcss([fontGrabber.makeTransformer()]))
-    .pipe(gulp.dest('dist/'));
-});
-```
-
-### Metadata Format
-
-Here is an example:
-
-```javascript
-// Importing module just for demonstration purpose, because the metadata contains URL object.
-import url from 'url';
-
-{
-    "jobResults": [
-        {
-            "job": {
-                "remoteFont": {
-                    "urlObject": url.parse('https://example.com'),
-                    "format": "woff2"
-                },
-                "css": {
-                    "sourcePath": "/var/project/public/css/google.css",
-                    "destinationDirectoryPath": "/var/project/public/dist/css/fonts"
-                },
-                "font": {
-                    "path": "/var/project/public/dist/css/fonts/ea8XadU7WuTxEub_NdWn8WZFuVs.woff2",
-                    "filename": "ea8XadU7WuTxEub_NdWn8WZFuVs.woff2"
-                }
-            },
-            "download": {
-                "size": 14312
-            }
-        },
-        /* More JobResults */
-    ]
-}
-```
+TODO
 
 ## License
 
