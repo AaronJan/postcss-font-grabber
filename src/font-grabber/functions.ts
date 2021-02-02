@@ -1,41 +1,31 @@
-import { ChildNode, Declaration } from 'postcss';
+import { Declaration } from 'postcss';
 import path from 'path';
 import url from 'url';
+import { createWriteStream } from 'fs';
 
-import {
-  PluginOptions,
-  PluginSettings,
-  RemoteFont,
-  Job,
-  JobResult,
-  Dictionary,
-} from '../contracts';
-import { defaultValue, md5, trim } from '../helpers';
-import { Downloader as DownloaderContract } from './downloader/contract';
-import { Downloader } from './downloader';
+import { ParsedSrc, FontSpec, DownloadResult } from '../types';
+import { md5, trim } from '../helpers';
+import { debug } from 'console';
+import { PostcssFontGrabberError } from './errors';
 
-const fontExtensionToFormatMap: Dictionary<string> = {
-  '.eot': 'embedded-opentype',
-  '.woff': 'woff',
-  '.woff2': 'woff2',
-  '.ttf': 'truetype',
-  '.svg': 'svg',
+const FontExtensionsToMimeTypes = {
+  woff: ['application/font-woff', 'font/woff'],
+  woff2: ['application/font-woff2', 'font/woff2'],
+  eot: ['application/vnd.ms-fontobject'],
+  ttf: ['application/x-font-ttf', 'application/x-font-truetype'],
+  otf: ['application/x-font-opentype', 'font/otf'],
+  svg: ['image/svg+xml'],
 };
 
-export function parseOptions(options: PluginOptions): PluginSettings {
-  return <PluginSettings>{
-    cssSourceDirectoryPath:
-      options.cssSrc !== undefined ? path.resolve(options.cssSrc) : undefined,
-    cssDestinationDirectoryPath:
-      options.cssDest !== undefined ? path.resolve(options.cssDest) : undefined,
-    fontDirectoryPath:
-      options.fontDir !== undefined ? path.resolve(options.fontDir) : undefined,
-    autoCreateDirectory: defaultValue(options.mkdir, true),
-    fontDownloader: options.fontDownloader,
-  };
-}
+const FontExtensionsToFormats: Record<string, string> = {
+  eot: 'embedded-opentype',
+  woff: 'woff',
+  woff2: 'woff2',
+  ttf: 'truetype',
+  svg: 'svg',
+};
 
-export function isRemoteFontFaceDeclaration(node: ChildNode): boolean {
+export function isRemoteFontFaceDeclaration(node: Declaration): boolean {
   if (node.type !== 'decl') {
     return false;
   }
@@ -65,21 +55,18 @@ export function getFontFilename(fontUriObject: url.UrlWithStringQuery): string {
   return md5(url.format(fontUriObject));
 }
 
-export function getFontFormatFromUrlObject(
+export function guessFormatFromUrl(
   urlObject: url.UrlWithStringQuery,
-): undefined | string {
+): string | undefined {
   if (!urlObject.pathname) {
     return;
   }
-
   const extension = path.extname(urlObject.pathname);
 
-  return fontExtensionToFormatMap[extension] !== undefined
-    ? fontExtensionToFormatMap[extension]
-    : undefined;
+  return FontExtensionsToFormats[extension.substring(1)];
 }
 
-export function getFontInfoFromSrc(src: string): undefined | RemoteFont {
+export function parseSrcString(src: string): undefined | ParsedSrc {
   const result = /^url\s*\(\s*[\'\"]?(https?:[^\)]*?)[\'\"]?\s*\)(\s+format\([\'\"]?([a-zA-Z0-9]+)[\'\"]?\))?/.exec(
     src,
   );
@@ -89,9 +76,9 @@ export function getFontInfoFromSrc(src: string): undefined | RemoteFont {
 
   const urlObject = url.parse(result[1]);
   const format =
-    result[3] !== undefined ? result[3] : getFontFormatFromUrlObject(urlObject);
+    result[3] !== undefined ? result[3] : guessFormatFromUrl(urlObject);
   if (format === undefined) {
-    throw new Error(`can't get the font format from @font-face src: [${src}]`);
+    debug(`can't get the font format from @font-face src: [${src}]`);
   }
 
   return {
@@ -100,104 +87,169 @@ export function getFontInfoFromSrc(src: string): undefined | RemoteFont {
   };
 }
 
-export function reduceSrcsToFontInfos(
-  fontInfos: RemoteFont[],
-  src: string,
-): RemoteFont[] {
-  const fontInfo = getFontInfoFromSrc(src);
-
-  return fontInfo === undefined ? fontInfos : [...fontInfos, fontInfo];
+export function calculateFontId(fontUrl: url.UrlWithStringQuery) {
+  return md5(url.format(fontUrl));
 }
 
-export function processDeclaration(
-  declaration: Declaration,
-  cssSourceFilePath: string,
-  cssDestinationDirectoryPath: string,
-  downloadDirectoryPath: string,
-): Job[] {
-  const relativePath = path.relative(
-    cssDestinationDirectoryPath,
-    downloadDirectoryPath,
-  );
+export function getSourceCssFilePath(node: Declaration): string {
+  const sourceFile = node.source?.input?.file;
+  if (sourceFile === undefined) {
+    throw new PostcssFontGrabberError(
+      `Can not get CSS file path of the node: "${node.toString()}"`,
+    );
+  }
+  return sourceFile;
+}
 
-  const fontFaceSrcs = declaration.value.split(',').map(trim);
-  const fontInfos: RemoteFont[] = fontFaceSrcs.reduce(
-    reduceSrcsToFontInfos,
-    [],
-  );
+export function calculateFontSpecs(fontFaceNode: Declaration): FontSpec[] {
+  const srcs = fontFaceNode.value.split(',').map(trim);
+  const filteredAndParsedSrcs: ParsedSrc[] = srcs.reduce((parsedSrcs, src) => {
+    const parsed = parseSrcString(src);
+    return parsed ? [...parsedSrcs, parsed] : parsedSrcs;
+  }, [] as ParsedSrc[]);
 
-  return fontInfos.map<Job>(fontInfo => {
-    const filename = getFontFilename(fontInfo.urlObject);
-    const filePath = path.resolve(path.join(downloadDirectoryPath, filename));
-
-    const job: Job = {
-      remoteFont: fontInfo,
+  return filteredAndParsedSrcs.map(parsedSrc => {
+    return {
+      id: calculateFontId(parsedSrc.urlObject),
+      parsedSrc,
+      basename: path.basename(parsedSrc.urlObject.pathname ?? ''),
       css: {
-        sourcePath: cssSourceFilePath,
-        destinationDirectoryPath: cssDestinationDirectoryPath,
-      },
-      font: {
-        path: filePath,
-        filename: filename,
+        sourceFile: getSourceCssFilePath(fontFaceNode),
       },
     };
-
-    const originalUri = url.format(fontInfo.urlObject);
-    const replaceTo = path
-      .join(relativePath, job.font.filename)
-      // Replace `\\` to `/` for Windows compatibility.
-      .replace(/\\/g, '/');
-
-    declaration.value = declaration.value.replace(originalUri, replaceTo);
-
-    return job;
   });
 }
 
-export async function downloadFont(
-  job: Job,
-  downloader: DownloaderContract = new Downloader(),
-): Promise<JobResult> {
-  const fileInfo = await downloader.download(
-    job.remoteFont.urlObject,
-    job.font.path,
-  );
-  return {
-    job,
-    download: {
-      size: fileInfo.size,
-    },
-  };
+export function getFormatForFontExtension(extension: string): string | null {
+  const format = FontExtensionsToFormats[extension];
+  return format === undefined ? null : format;
 }
 
-export function calculateCssOutputDirectoryPath(
-  cssSourceFilePath: string,
-  cssSourceDirectoryPathFromSetting: string | undefined,
-  cssDestinationDirectoryPathFromSetting: string | undefined,
-  postcssOptionsTo: string | undefined,
-): string | undefined {
-  const cssDirectoryPath = path.dirname(cssSourceFilePath);
-  const finalPostcssOptionsTo = defaultValue(postcssOptionsTo, undefined);
-  // Get the sub-folder stucture.
-  const cssSourceDirectoryPath = defaultValue(
-    cssSourceDirectoryPathFromSetting,
-    cssDirectoryPath,
-  );
-  const cssDestinationDirectoryPath = defaultValue(
-    cssDestinationDirectoryPathFromSetting,
-    finalPostcssOptionsTo !== undefined
-      ? path.dirname(finalPostcssOptionsTo)
-      : undefined,
-  );
-
-  if (cssDestinationDirectoryPath === undefined) {
-    return undefined;
+export function getFontExtensionForFormat(format: string): string {
+  const lowerCased = format.toLowerCase();
+  for (const [extension, format] of Object.entries(FontExtensionsToFormats)) {
+    if (format === lowerCased) {
+      return extension;
+    }
   }
 
-  const cssToSourceDirectoryRelation = path.relative(
-    cssSourceDirectoryPath,
-    cssDirectoryPath,
+  throw new PostcssFontGrabberError(
+    `Invalid format: "${format}", please check your CSS rule.`,
   );
+}
 
-  return path.join(cssDestinationDirectoryPath, cssToSourceDirectoryRelation);
+export function getFontFileExtentionForMimeType(
+  mimeType: string,
+): string | null {
+  const lowerCased = mimeType.toLowerCase();
+  for (const [extension, mimeTypes] of Object.entries(
+    FontExtensionsToMimeTypes,
+  )) {
+    if (mimeTypes.includes(lowerCased)) {
+      return extension;
+    }
+  }
+  return null;
+}
+
+export function getExtensionForBasename(basename: string): string {
+  return path.extname(basename).replace(/^\./, '');
+}
+
+export function getFontFileExtention({
+  format,
+  mimeType,
+  basename,
+}: {
+  format?: string;
+  mimeType?: string;
+  basename: string;
+}): string {
+  if (format) {
+    return getFontExtensionForFormat(format);
+  }
+
+  if (mimeType) {
+    const mimeTypeExtension = getFontFileExtentionForMimeType(mimeType);
+    if (mimeTypeExtension !== null) {
+      return mimeTypeExtension;
+    }
+  }
+
+  return getExtensionForBasename(basename);
+}
+
+export function saveFile({
+  downloadResult,
+  fontSpec,
+  fontDirectoryPath,
+}: {
+  downloadResult: DownloadResult;
+  fontSpec: FontSpec;
+  fontDirectoryPath: string;
+}): Promise<{
+  filename: string;
+  filePath: string;
+  format: string | null;
+}> {
+  const extension = getFontFileExtention({
+    format: fontSpec.parsedSrc.format,
+    mimeType: downloadResult.mimeType,
+    basename: fontSpec.basename,
+  });
+  const finalFormat =
+    fontSpec.parsedSrc.format ?? getFormatForFontExtension(extension);
+  // Generate a new filename
+  const filename = `${fontSpec.id}${extension === '' ? '' : `.${extension}`}`;
+  const filePath = path.join(fontDirectoryPath, filename);
+
+  return new Promise((resolve, reject) => {
+    const file = createWriteStream(filePath);
+    file.on('error', error => reject(error));
+    file.on('finish', () =>
+      resolve({
+        filename,
+        filePath,
+        format: finalFormat,
+      }),
+    );
+
+    downloadResult.data.pipe(file);
+  });
+}
+
+export function calculateRelativePath({
+  cssDirectoryPath,
+  cssFileDirectoryRelativePath,
+  fontFilePath,
+}: {
+  cssDirectoryPath: string;
+  cssFileDirectoryRelativePath: string;
+  fontFilePath: string;
+}): string {
+  const filename = path.basename(fontFilePath);
+  const fontDirectoryPath = path.dirname(fontFilePath);
+  const cssFilePath = path.join(cssDirectoryPath, cssFileDirectoryRelativePath);
+
+  return path.join(path.relative(cssFilePath, fontDirectoryPath), filename);
+}
+
+export function getNewDeclarationValue({
+  value,
+  oldUrl,
+  newUrl,
+}: {
+  value: string;
+  oldUrl: string;
+  newUrl: string;
+}): string {
+  return value.replace(oldUrl, newUrl);
+}
+
+export function getSubDirectoryPath(
+  directoryPath: string,
+  subFilePath: string,
+): string {
+  const relativeFilePath = path.relative(directoryPath, subFilePath);
+  return path.dirname(relativeFilePath);
 }

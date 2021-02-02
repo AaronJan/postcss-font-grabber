@@ -2,8 +2,9 @@ import gulp from 'gulp';
 import postcss from 'gulp-postcss';
 import { join } from 'path';
 import { sync as rimraf } from 'rimraf';
+import { Readable } from 'stream';
 import { postcssFontGrabber } from '../../../src';
-import { Job } from '../../../src/contracts';
+import { FontSpec } from '../../../src/types';
 
 const fixturesDirectoryPath = join(__dirname, 'fixtures');
 const OutputsDirectoryPath = join(__dirname, 'outputs/dist');
@@ -28,12 +29,12 @@ describe('Basic Gulp integration example', () => {
       join(CssSrcDir, 'mobile.css'),
     ];
 
-    const fontDownloader = jest.fn().mockImplementation(job => {
+    const mockDownloader = jest.fn().mockImplementation(fontSpec => {
+      const data = Readable.from(['font']);
+
       return {
-        job,
-        download: {
-          size: 100,
-        },
+        data,
+        mimeType: undefined,
       };
     });
 
@@ -44,21 +45,22 @@ describe('Basic Gulp integration example', () => {
           postcssFontGrabber({
             cssSrc: CssSrcDir,
             cssDest: CssDestDir,
-            fontDir: CssDestFontDir,
-            mkdir: true,
-            fontDownloader,
+            fontDest: CssDestFontDir,
+            downloader: mockDownloader,
           }),
         ]),
       )
       .pipe(gulp.dest(GulpDestDir))
       .on('end', () => {
-        expect(fontDownloader.mock.calls.length).toBe(3);
-        for (const call of fontDownloader.mock.calls) {
-          const job: Job = call[0];
+        expect(mockDownloader.mock.calls.length).toBe(3);
+        for (const call of mockDownloader.mock.calls) {
+          const fontSpec: FontSpec = call[0];
           expect(
-            expectedFontUrls.includes(job.remoteFont.urlObject.href),
+            expectedFontUrls.includes(fontSpec.parsedSrc.urlObject.href),
           ).toBeTruthy();
-          expect(expectedCssFiles.includes(job.css.sourcePath)).toBeTruthy();
+          expect(
+            expectedCssFiles.includes(fontSpec.css.sourceFile),
+          ).toBeTruthy();
         }
 
         done();
