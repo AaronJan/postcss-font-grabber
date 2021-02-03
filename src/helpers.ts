@@ -1,5 +1,6 @@
 import fs from 'fs';
 import { createHash } from 'crypto';
+import path from 'path';
 
 export type Dictionary<T> = {
   [property: string]: T;
@@ -68,7 +69,7 @@ export function unique<T>(array: T[], identify?: (value: T) => string): T[] {
 
 export function makeDirectoryRecursively(directoryPath: string): Promise<void> {
   return new Promise((resolve, reject) =>
-    fs.mkdir(directoryPath, { recursive: true }, error => {
+    fs.mkdir(path.normalize(directoryPath), { recursive: true }, error => {
       if (error) {
         return reject(error);
       }

@@ -105,85 +105,36 @@ describe('makeDirectoryRecursively', () => {
   test('makes `public/fonts` directories', async () => {
     const fs = require('fs');
     const path = require('path');
-    fs.stat = jest
-      .fn()
-      .mockImplementationOnce((filePath, callback) => {
-        callback();
-      })
-      .mockImplementationOnce((filePath, callback) => {
-        callback();
-      })
-      .mockImplementationOnce((filePath, callback) => {
-        callback({ code: 'ENOENT' });
-      })
-      .mockImplementationOnce((filePath, callback) => {
-        callback({ code: 'ENOENT' });
-      });
     fs.mkdir = jest
       .fn()
-      .mockImplementationOnce((directoryPath, callback) => callback())
-      .mockImplementationOnce((directoryPath, callback) => callback());
+      .mockImplementationOnce((directoryPath, options, callback) => callback());
     path.sep = '/';
-    path.resolve = jest.fn().mockReturnValueOnce('/var/project/public/fonts');
+    path.normalize = jest.fn().mockReturnValueOnce('/var/project/public/fonts');
 
     const directoryPath = '/var/project/public/fonts/';
 
     expect(await makeDirectoryRecursively(directoryPath)).toBeUndefined();
 
-    expect(fs.stat).toHaveBeenCalledTimes(4);
-    expect(fs.stat.mock.calls[0][0]).toBe('/var');
-    expect(typeof fs.stat.mock.calls[0][1]).toBe('function');
-    expect(fs.stat.mock.calls[1][0]).toBe('/var/project');
-    expect(typeof fs.stat.mock.calls[1][1]).toBe('function');
-    expect(fs.stat.mock.calls[2][0]).toBe('/var/project/public');
-    expect(typeof fs.stat.mock.calls[2][1]).toBe('function');
-    expect(fs.stat.mock.calls[3][0]).toBe('/var/project/public/fonts');
-    expect(typeof fs.stat.mock.calls[3][1]).toBe('function');
-
-    expect(fs.mkdir).toHaveBeenCalledTimes(2);
-    expect(fs.mkdir.mock.calls[0][0]).toBe('/var/project/public');
-    expect(typeof fs.mkdir.mock.calls[0][1]).toBe('function');
-    expect(fs.mkdir.mock.calls[1][0]).toBe('/var/project/public/fonts');
-    expect(typeof fs.mkdir.mock.calls[1][1]).toBe('function');
+    expect(fs.mkdir).toHaveBeenCalledTimes(1);
+    expect(fs.mkdir.mock.calls[0][0]).toBe('/var/project/public/fonts');
+    expect(typeof fs.mkdir.mock.calls[0][2]).toBe('function');
   });
 
   test('makes `public\\fonts` directories on Windows', async () => {
     const fs = require('fs');
     const path = require('path');
-    fs.stat = jest
-      .fn()
-      .mockImplementationOnce((filePath, callback) => {
-        callback();
-      })
-      .mockImplementationOnce((filePath, callback) => {
-        callback({ code: 'ENOENT' });
-      })
-      .mockImplementationOnce((filePath, callback) => {
-        callback({ code: 'ENOENT' });
-      });
     fs.mkdir = jest
       .fn()
-      .mockImplementationOnce((directoryPath, callback) => callback())
-      .mockImplementationOnce((directoryPath, callback) => callback());
+      .mockImplementationOnce((directoryPath, options, callback) => callback());
     path.sep = '\\';
-    path.resolve = jest.fn().mockReturnValueOnce('D:\\project\\public\\fonts');
+    path.normalize = jest.fn().mockReturnValueOnce('D:\\project\\public\\fonts');
 
     const directoryPath = 'D:\\project\\public\\fonts\\';
 
     expect(await makeDirectoryRecursively(directoryPath)).toBeUndefined();
 
-    expect(fs.stat).toHaveBeenCalledTimes(3);
-    expect(fs.stat.mock.calls[0][0]).toBe('D:\\project');
-    expect(typeof fs.stat.mock.calls[0][1]).toBe('function');
-    expect(fs.stat.mock.calls[1][0]).toBe('D:\\project\\public');
-    expect(typeof fs.stat.mock.calls[1][1]).toBe('function');
-    expect(fs.stat.mock.calls[2][0]).toBe('D:\\project\\public\\fonts');
-    expect(typeof fs.stat.mock.calls[2][1]).toBe('function');
-
-    expect(fs.mkdir).toHaveBeenCalledTimes(2);
-    expect(fs.mkdir.mock.calls[0][0]).toBe('D:\\project\\public');
-    expect(typeof fs.mkdir.mock.calls[0][1]).toBe('function');
-    expect(fs.mkdir.mock.calls[1][0]).toBe('D:\\project\\public\\fonts');
-    expect(typeof fs.mkdir.mock.calls[1][1]).toBe('function');
+    expect(fs.mkdir).toHaveBeenCalledTimes(1);
+    expect(fs.mkdir.mock.calls[0][0]).toBe('D:\\project\\public\\fonts');
+    expect(typeof fs.mkdir.mock.calls[0][2]).toBe('function');
   });
 });
