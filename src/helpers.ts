@@ -1,6 +1,4 @@
 import fs from 'fs';
-import path from 'path';
-import { promisify } from 'util';
 import { createHash } from 'crypto';
 
 export type Dictionary<T> = {
@@ -68,28 +66,13 @@ export function unique<T>(array: T[], identify?: (value: T) => string): T[] {
   }, []);
 }
 
-export async function makeDirectoryRecursively(
-  directoryPath: string,
-): Promise<void> {
-  const fsStat = promisify(fs.stat);
-  const fsMkdir = promisify(fs.mkdir);
-
-  const pathParts = path.resolve(directoryPath).split(path.sep);
-  const firstPart = <string>pathParts.shift();
-
-  await pathParts.reduce<Promise<string>>(async (result, current) => {
-    const resultString = await result;
-    const currentPath = `${resultString}${path.sep}${current}`;
-
-    try {
-      await fsStat(currentPath);
-    } catch (e) {
-      if (e.code === 'ENOENT') {
-        await fsMkdir(currentPath);
-      } else {
-        throw e;
+export function makeDirectoryRecursively(directoryPath: string): Promise<void> {
+  return new Promise((resolve, reject) =>
+    fs.mkdir(directoryPath, { recursive: true }, error => {
+      if (error) {
+        return reject(error);
       }
-    }
-    return currentPath;
-  }, Promise.resolve(firstPart));
+      resolve();
+    }),
+  );
 }
