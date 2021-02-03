@@ -41,36 +41,34 @@ You may not want to use remote fonts, because:
 npm install postcss postcss-font-grabber --save-dev
 ```
 
-## Usages
+## Options
 
-### Options
+Function `postcssFontGrabber` takes an object of options as parameter, like:
 
-```typescript
-import { postcssFontGrabber, FontSpec } from 'postcss-font-grabber';
-import { Readable } from 'stream';
+```javascript
+import { postcssFontGrabber } from 'postcss-font-grabber';
 
 postcssFontGrabber({
-  // The path of the source CSS directory.
-  // Normally you don't have to set this.
   cssSrc: 'src/css/',
-
-  // The path of the CSS output directory.
-  // You have to specify this manually, PFG needs this to calculate relative
-  // path.
-  cssDest: 'src/css/',
-
-  // The directory to store the downloaded font files.
-  // It's the same as `cssDest` by default.
-  fontDest: 'tmp/css/fonts/',
-
-  // Custom function to download font files.
-  // Optional.
-  download: async (fontSpec: FontSpec) => ({
-    data: Readable.from(['font file content']),
-    mimeType: 'application/font-woff2',
-  }),
-}),
+  cssDest: 'dist/',
+  fontDest: 'dist/fonts/',
+});
 ```
+
+|   Name   |                                   Type                                   | Default                              | Description                                         |
+| :------: | :----------------------------------------------------------------------: | :----------------------------------- | :-------------------------------------------------- |
+|  cssSrc  |                                 `string`                                 | `opts.from` from `PostCSS`'s setting | The root directory path of all CSS files            |
+| cssDest  |                                 `string`                                 | `opts.to` from `PostCSS`'s setting   | The directory where the transpiled CSS files are in |
+| fontDest |                                 `string`                                 | the same as `cssDest`                | The directory where the downloaded fonts stored     |
+| download | `(fontSpec: FontSpec) => Promise<{ data: Readable, mimeType?: string }>` | -                                    | Custom function to download font files              |
+
+You can import types as shown above:
+
+```typescript
+import { FontSpec, Downloader, DownloadResult } from 'postcss-font-grabber';
+```
+
+## Usages
 
 ### With Gulp
 
@@ -97,7 +95,7 @@ gulp.task('css', () => {
 
 ### With Webpack
 
-> This example is using `Webpack 4` with these packages:
+> This example is using `Webpack 5` with these packages:
 >
 > - [postcss-loader](https://github.com/postcss/postcss-loader)
 > - [css-loader](https://github.com/webpack-contrib/css-loader)
@@ -117,25 +115,11 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.css$/,
-        exclude: /node_modules/,
-        use: [
-          {
-            loader: 'style-loader',
-          },
-          {
-            loader: 'css-loader',
-            options: {
-              importLoaders: 1,
-            },
-          },
-          {
-            loader: 'postcss-loader',
-          },
-        ],
+        test: /\.css$/i,
+        use: ['style-loader', 'css-loader', 'postcss-loader'],
       },
       {
-        test: /\.(woff|woff2|eot|ttf|otf)$/,
+        test: /\.(woff|woff2|eot|ttf|otf)$/i,
         use: ['file-loader'],
       },
     ],
@@ -146,16 +130,17 @@ module.exports = {
 `postcss.config.js`:
 
 ```javascript
-import postcssFontGrabber from 'postcss-font-grabber';
+import { postcssFontGrabber } from 'postcss-font-grabber';
 
 module.exports = {
   plugins: [
     postcssFontGrabber({
       cssSrc: 'src/css/',
-      // When using with `Webpack` you must set `cssDest` as the same as `cssSrc`
-      // since `Webpack` doesn't output CSS files directly, when done with
-      // `PostCSS`, `Webpack` use `file-loader` to transpile local file
-      // references in the CSS.
+      // When using with `Webpack` you must set `cssDest` as the same as `cssSrc`,
+      // since `Webpack` kept updated CSS files in memory, your source files will
+      // be fine.
+      // When `PostCSS` is done its job, `Webpack` then use `file-loader` to
+      // embedding font file references into the dist file.
       cssDest: 'src/css/',
       fontDest: 'tmp/css/fonts/',
     }),
@@ -166,25 +151,6 @@ module.exports = {
 ### With Only PostCSS
 
 `PostCSS-Font-Grabber` will use `from` and `to` options of `PostCSS` setting as the default options of `cssSrc` (`from`), `cssDest` and `fontDest` (`to`).
-
-## Options
-
-Function `postcssFontGrabber` takes an object of options as parameter:
-
-```javascript
-postcssFontGrabber({
-  cssSrc: 'src/css/',
-  cssDest: 'dist/',
-  fontDest: 'dist/fonts/',
-});
-```
-
-|   Name   |   Type    | Default                              | Description                                                     |
-| :------: | :-------: | :----------------------------------- | :-------------------------------------------------------------- |
-|  cssSrc  | {string}  | `opts.from` from `PostCSS`'s setting | The root directory path of all CSS files                        |
-| cssDest  | {string}  | `opts.to` from `PostCSS`'s setting   | The directory where the transpiled CSS files are in             |
-| fontDest | {string}  | the same as `cssDest`                | The directory where the downloaded fonts stored                 |
-|  mkdir   | {boolean} | `true`                               | whether to create non-existing directories automatically or not |
 
 ## Advanced Usages
 
