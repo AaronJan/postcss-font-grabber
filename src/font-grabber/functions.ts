@@ -243,6 +243,7 @@ export function getNewDeclarationValue({
   oldUrl: string;
   newUrl: string;
 }): string {
+  newUrl = newUrl.replace(/\\/g, '/');
   return value.replace(oldUrl, newUrl);
 }
 
