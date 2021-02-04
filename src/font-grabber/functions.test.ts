@@ -202,3 +202,29 @@ describe('parseSrcString', () => {
     });
   });
 });
+
+describe('getNewDeclarationValue', () => {
+  test('resolves with unix path separators', () => {
+    const value = "url(https://fonts.gstatic.com/s/notosanstc/v11/-nFlOG829Oofr2wohFbTp9i9WyEKIfVZ15Ls5XOFrksA2xrfz7uqxBF_ije-Lcrp9hfGsGeZ-W5oyw.0.woff2) format('woff2')"
+    const oldUrl = "https://fonts.gstatic.com/s/notosanstc/v11/-nFlOG829Oofr2wohFbTp9i9WyEKIfVZ15Ls5XOFrksA2xrfz7uqxBF_ije-Lcrp9hfGsGeZ-W5oyw.0.woff2";
+    const newUrl = "../../outputs/dist/css/font/b2e443c6bc8eb92ed319c5f3ea877643.woff2";
+
+    expect(functions.getNewDeclarationValue({
+      value,
+      oldUrl,
+      newUrl
+    })).toEqual("url(../../outputs/dist/css/font/b2e443c6bc8eb92ed319c5f3ea877643.woff2) format('woff2')")
+  });
+
+  test('resolves with windows path separators', () => {
+    const value = "url(https://fonts.gstatic.com/s/notosanstc/v11/-nFlOG829Oofr2wohFbTp9i9WyEKIfVZ15Ls5XOFrksA2xrfz7uqxBF_ije-Lcrp9hfGsGeZ-W5oyw.0.woff2) format('woff2')"
+    const oldUrl = "https://fonts.gstatic.com/s/notosanstc/v11/-nFlOG829Oofr2wohFbTp9i9WyEKIfVZ15Ls5XOFrksA2xrfz7uqxBF_ije-Lcrp9hfGsGeZ-W5oyw.0.woff2";
+    const newUrl = "..\\..\\outputs\\dist\\css\\font\\b2e443c6bc8eb92ed319c5f3ea877643.woff2";
+
+    expect(functions.getNewDeclarationValue({
+      value,
+      oldUrl,
+      newUrl
+    })).toEqual("url(../../outputs/dist/css/font/b2e443c6bc8eb92ed319c5f3ea877643.woff2) format('woff2')")
+  });
+});
