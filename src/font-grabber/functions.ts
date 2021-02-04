@@ -1,4 +1,4 @@
-import { Declaration } from 'postcss';
+import { Declaration, Container } from 'postcss';
 import path from 'path';
 import url from 'url';
 import { createWriteStream } from 'fs';
@@ -92,7 +92,18 @@ export function calculateFontId(fontUrl: url.UrlWithStringQuery) {
 }
 
 export function getSourceCssFilePath(node: Declaration): string {
-  const sourceFile = node.source?.input?.file;
+  // This traversal is for supporting dynamically created `@font-face` rules
+  // that don't have the `source.input.file` property.
+  // But if the root node is also dynamic, then there is nothing we can do.
+  let currentNode: Declaration | Container = node;
+  while (
+    currentNode?.source?.input?.file === undefined &&
+    currentNode?.parent !== undefined
+  ) {
+    currentNode = currentNode.parent!;
+  }
+
+  const sourceFile = currentNode.source?.input?.file;
   if (sourceFile === undefined) {
     throw new PostcssFontGrabberError(
       `Can not get CSS file path of the node: "${node.toString()}"`,
