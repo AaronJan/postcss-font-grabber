@@ -237,14 +237,14 @@ export function calculateRelativePath({
 export function getNewDeclarationValue({
   value,
   oldUrl,
-  newUrl,
+  fontRelativePath,
 }: {
   value: string;
   oldUrl: string;
-  newUrl: string;
+  fontRelativePath: string;
 }): string {
-  newUrl = newUrl.replace(/\\/g, '/');
-  return value.replace(oldUrl, newUrl);
+  fontRelativePath = fontRelativePath.replace(/\\/g, '/');
+  return value.replace(oldUrl, fontRelativePath);
 }
 
 export function getSubDirectoryPath(

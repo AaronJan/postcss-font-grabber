@@ -155,7 +155,7 @@ export class FontGrabber {
                 node.value = getNewDeclarationValue({
                   value: node.value,
                   oldUrl: fontUrlString,
-                  newUrl: relativePath,
+                  fontRelativePath: relativePath,
                 });
               }
             }
