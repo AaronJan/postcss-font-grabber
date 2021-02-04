@@ -10,19 +10,17 @@
   <a href="https://www.npmjs.com/package/postcss-font-grabber"><img src="https://img.shields.io/npm/l/postcss-font-grabber.svg?style=flat-square" alt="License"></a>
 </p>
 
-> `3.x` is under active development.
-
 A [`postcss`](https://github.com/postcss/postcss) plugin, it grabs remote font files and update your CSS, just like that.
 
-> `postcss-font-grabber` `v3.x` only works with `postcss` `v8`，for `postcss` `v7`, please take a look at the [`v2.x`](https://github.com/AaronJan/postcss-font-grabber/tree/v1.x).
+> `postcss-font-grabber` `v3.x` only works with `postcss` `v8`，for `postcss` `v7`, please take a look at the [`v2.x`](https://github.com/AaronJan/postcss-font-grabber/tree/v1.x) branch.
 
 ## Motivation
 
 You may not want to use remote fonts, because:
 
-- it may expose your internal project
-- font service may be slow for your users
-- you can do more things with local font files
+- It may expose your internal project
+- Font services could be unstable sometimes
+- You can do more things with local font files
 - GDPR compliance
 
 ## Features
