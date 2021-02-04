@@ -1,21 +1,22 @@
 import webpack from 'webpack';
 import { join } from 'path';
-import { postcssFontGrabber } from '../../../src';
+import { postcssFontGrabber } from '../../../../src';
 import { Readable } from 'stream';
 import { sync as rimraf } from 'rimraf';
 
 const fixturesDirectoryPath = join(__dirname, 'fixtures');
 const OutputsDirectoryPath = join(__dirname, 'outputs/dist');
 
-const CssSrcDir = join(fixturesDirectoryPath, 'basic-example');
 const WebpackDestDir = OutputsDirectoryPath;
 const CssDestFontDir = join(OutputsDirectoryPath, '/css/font');
 
-describe('webpack', () => {
+describe('webpack - basic example', () => {
   beforeEach(() => rimraf(OutputsDirectoryPath));
   afterEach(() => rimraf(OutputsDirectoryPath));
 
   it('should works', done => {
+    const CssSrcDir = fixturesDirectoryPath;
+
     const mockDownloader = jest.fn().mockImplementation(fontSpec => {
       const data = Readable.from([
         `file:${fontSpec.css.sourceFile}\n`,

@@ -3,13 +3,12 @@ import postcss from 'gulp-postcss';
 import { join } from 'path';
 import { sync as rimraf } from 'rimraf';
 import { Readable } from 'stream';
-import { postcssFontGrabber } from '../../../src';
-import { FontSpec } from '../../../src/types';
+import { postcssFontGrabber, FontSpec } from '../../../../src';
 
 const fixturesDirectoryPath = join(__dirname, 'fixtures');
 const OutputsDirectoryPath = join(__dirname, 'outputs/dist');
 
-const CssSrcDir = join(fixturesDirectoryPath, 'basic-example');
+const CssSrcDir = fixturesDirectoryPath;
 const GulpDestDir = OutputsDirectoryPath;
 const CssDestDir = join(OutputsDirectoryPath, '/css');
 const CssDestFontDir = join(OutputsDirectoryPath, '/css/font');
