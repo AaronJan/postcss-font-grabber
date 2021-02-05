@@ -25,11 +25,10 @@ You may not want to use remote fonts, because:
 
 ## Features
 
-- Support custom download function (the `download` option)
-- Written in TypeScript
 - Standalone without any dependency
-- Download font files concurrently
+- Written in TypeScript
 - Infer font file extension from HTTP response header (Thanks to [@FTWinston](https://github.com/FTWinston))
+- Support custom download function (the `download` option)
 
 ## Installation
 
@@ -37,33 +36,6 @@ You may not want to use remote fonts, because:
 
 ```
 npm install postcss postcss-font-grabber --save-dev
-```
-
-## Options
-
-Function `postcssFontGrabber` takes an object of options as parameter, like:
-
-```javascript
-import { postcssFontGrabber } from 'postcss-font-grabber';
-
-postcssFontGrabber({
-  cssSrc: 'src/css/',
-  cssDest: 'dist/',
-  fontDest: 'dist/fonts/',
-});
-```
-
-|   Name   |                                   Type                                   | Default                              | Description                                         |
-| :------: | :----------------------------------------------------------------------: | :----------------------------------- | :-------------------------------------------------- |
-|  cssSrc  |                                 `string`                                 | `opts.from` from `PostCSS`'s setting | The root directory path of all CSS files            |
-| cssDest  |                                 `string`                                 | `opts.to` from `PostCSS`'s setting   | The directory where the transpiled CSS files are in |
-| fontDest |                                 `string`                                 | the same as `cssDest`                | The directory where the downloaded fonts stored     |
-| download | `(fontSpec: FontSpec) => Promise<{ data: Readable, mimeType?: string }>` | -                                    | Custom function to download font files              |
-
-You can import types as shown above:
-
-```typescript
-import { FontSpec, Downloader, DownloadResult } from 'postcss-font-grabber';
 ```
 
 ## Usages
@@ -150,9 +122,22 @@ module.exports = {
 
 `PostCSS-Font-Grabber` will use `from` and `to` options of `PostCSS` setting as the default options of `cssSrc` (`from`), `cssDest` and `fontDest` (`to`).
 
-## Advanced Usages
+## Options
 
-TODO
+|   Name   |                                   Type                                   | Default                              | Description                                                                                 |
+| :------: | :----------------------------------------------------------------------: | :----------------------------------- | :------------------------------------------------------------------------------------------ |
+|  cssSrc  |                                 `string`                                 | `opts.from` from `PostCSS`'s setting | The root directory path of all CSS files                                                    |
+| cssDest  |                                 `string`                                 | `opts.to` from `PostCSS`'s setting   | The directory where the transpiled CSS files are in                                         |
+| fontDest |                                 `string`                                 | the same as `cssDest`                | The directory where the downloaded fonts stored                                             |
+| download | `(fontSpec: FontSpec) => Promise<{ data: Readable, mimeType?: string }>` | -                                    | Custom function to download font files. Maybe you want to customize UserAgent or something? |
+
+## TypeScript
+
+You can import types if you need to (only in TypeScript):
+
+```typescript
+import { FontSpec, Downloader, DownloadResult } from 'postcss-font-grabber';
+```
 
 ## License
 
