@@ -9,20 +9,21 @@ import { debug } from 'console';
 import { PostcssFontGrabberError } from './errors';
 
 const FontExtensionsToMimeTypes = {
-  woff: ['application/font-woff', 'font/woff'],
-  woff2: ['application/font-woff2', 'font/woff2'],
   eot: ['application/vnd.ms-fontobject'],
-  ttf: ['application/x-font-ttf', 'application/x-font-truetype'],
   otf: ['application/x-font-opentype', 'font/otf'],
   svg: ['image/svg+xml'],
+  ttf: ['application/x-font-ttf', 'application/x-font-truetype'],
+  woff: ['application/font-woff', 'font/woff'],
+  woff2: ['application/font-woff2', 'font/woff2'],
 };
 
 const FontExtensionsToFormats: Record<string, string> = {
   eot: 'embedded-opentype',
+  otf: 'opentype',
+  svg: 'svg',
+  ttf: 'truetype',
   woff: 'woff',
   woff2: 'woff2',
-  ttf: 'truetype',
-  svg: 'svg',
 };
 
 export function isRemoteFontFaceDeclaration(node: Declaration): boolean {
