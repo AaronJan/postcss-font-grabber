@@ -63,9 +63,41 @@ gulp.task('css', () => {
 });
 ```
 
+### With Rollup
+
+> This example is using `Rollup 2` with:
+>
+> - [rollup-plugin-postcss](https://github.com/egoist/rollup-plugin-postcss)
+
+`rollup.config.js`:
+
+```javascript
+import postcss from 'rollup-plugin-postcss';
+
+export default {
+  input: 'src/main.js',
+  output: {
+    file: 'dist/bundle.js',
+    format: 'cjs',
+  },
+  plugins: [
+    postcss({
+      plugins: [
+        postcssFontGrabber({
+          // postcss-font-grabber needs to know the CSS output
+          // directory in order to calculate the new font URL.
+          cssDest: 'dist/',
+          fontDest: 'dist/fonts/',
+        }),
+      ],
+    }),
+  ],
+};
+```
+
 ### With Webpack
 
-> This example is using `Webpack 5` with these packages:
+> This example is using `Webpack 5` with:
 >
 > - [postcss-loader](https://github.com/postcss/postcss-loader)
 > - [css-loader](https://github.com/webpack-contrib/css-loader)
