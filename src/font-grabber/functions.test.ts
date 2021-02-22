@@ -202,6 +202,15 @@ describe('parseSrcString', () => {
     });
   });
 
+  test('short format', () => {
+    const src = 'url(https://example.com/folder/font) format(eot)';
+
+    expect(functions.parseSrcString(src)).toEqual({
+      urlObject: url.parse('https://example.com/folder/font'),
+      format: 'eot',
+    });
+  });
+
   test('long format', () => {
     const src =
       'url(https://example.com/folder/font) format(embedded-opentype)';
