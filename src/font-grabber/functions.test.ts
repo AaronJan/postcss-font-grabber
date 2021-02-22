@@ -201,6 +201,16 @@ describe('parseSrcString', () => {
       format: undefined,
     });
   });
+
+  test('long format', () => {
+    const src =
+      'url(https://example.com/folder/font) format(embedded-opentype)';
+
+    expect(functions.parseSrcString(src)).toEqual({
+      urlObject: url.parse('https://example.com/folder/font'),
+      format: 'embedded-opentype',
+    });
+  });
 });
 
 describe('getNewDeclarationValue', () => {
