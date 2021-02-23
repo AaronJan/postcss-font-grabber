@@ -68,7 +68,7 @@ export function guessFormatFromUrl(
 }
 
 export function parseSrcString(src: string): undefined | ParsedSrc {
-  const result = /^url\s*\(\s*[\'\"]?(https?:[^\)]*?)[\'\"]?\s*\)(\s+format\([\'\"]?([a-zA-Z0-9]+)[\'\"]?\))?/.exec(
+  const result = /^url\s*\(\s*[\'\"]?(https?:[^\)]*?)[\'\"]?\s*\)(\s+format\([\'\"]?([\-a-zA-Z0-9]+)[\'\"]?\))?/.exec(
     src,
   );
   if (result === null) {
